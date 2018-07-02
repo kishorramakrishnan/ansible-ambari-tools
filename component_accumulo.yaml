@@ -1,0 +1,13 @@
+- hosts: all
+
+  roles:
+    - name: ambari_props
+      component_name: accumulo-site
+      component_props:
+        monitor.ssl.keyStore: "{{ certs_dir }}/{{ certs_jks_location }}"
+        monitor.ssl.keyStoreType: JKS
+        monitor.ssl.keyStorePassword: "{{ certs_jks_store_password }}"
+        monitor.ssl.trustStore: "{{ certs_dir }}/{{ certs_jks_location }}"
+        monitor.ssl.trustStorePassword: "{{ certs_jks_store_password }}"
+        monitor.ssl.trustStoreType: JKS
+        rpc.sasl.qop: auth-conf

@@ -1,6 +1,6 @@
 certs_use_local_ca: true
 
-certs_dir: /tmp/certs
+certs_dir: /etc/wire_encryption
 certs_local_dir: ./certs
 
 certs_jks_file: certs.jks

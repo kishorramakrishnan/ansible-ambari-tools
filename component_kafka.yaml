@@ -1,0 +1,13 @@
+- hosts: all
+
+  roles:
+    - name: ambari_props
+      component_name: kafka-broker
+      component_props:
+        listeners: PLAINTEXT://localhost:6667,SSL://localhost:6666
+        ssl.key.password: "{{ certs_jks_key_password }}"
+        ssl.keystore.location: "{{ certs_dir }}/{{ certs_jks_location }}"
+        ssl.keystore.type: JKS
+        ssl.truststore.location: "{{ certs_dir }}/{{ certs_jks_location }}"
+        ssl.truststore.password: "{{ certs_jks_store_password }}"
+        ssl.truststore.type: JKS
