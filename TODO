@@ -1,4 +1,4 @@
 * handle certificate chain with external CA
 * generate certs_ca_subject from certs_jks_subject_suffix like:
   "/{{ certs_jks_subject_suffix | split(',') | reverse | join('/') }}/CN=horton_root_ca"
-* change command modules for openssl to openssl_* ones
+* change key/value setter to ambari API calls

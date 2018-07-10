@@ -1,0 +1,21 @@
+- name : wait component restart
+  delegate_to: localhost
+  run_once: true
+  uri:
+    url: "{{ (ambari_restart_request.content | from_json)['href'] }}"
+    timeout: '{{ ambari_http_timeout }}'
+    method: GET
+    force_basic_auth: yes
+    user: '{{ ambari_user }}'
+    password: '{{ ambari_password }}'
+    return_content: yes
+    headers:
+      X-Requested-By: ambari
+      Content-Type: text/plain
+    validate_certs: no
+    status_code: 200
+  register: ambari_restart_response
+  when: ambari_restart_request.content
+  delay: '{{ ambari_http_delay }}'
+  retries: '{{ ambari_http_retries }}'
+  until: "(ambari_restart_response.content | from_json)['Requests']['request_status'] != 'IN_PROGRESS'"

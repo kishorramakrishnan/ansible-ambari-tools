@@ -1,0 +1,9 @@
+# These variables come from ambari dynamic inventory:
+#   ansible_url
+#   ansible_user
+#   ansible_password
+#   ansible_cluster_name
+
+ambari_http_delay: 10
+ambari_http_retries: 100
+ambari_http_timeout: 60

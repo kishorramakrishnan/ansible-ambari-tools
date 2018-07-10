@@ -1,0 +1,3 @@
+# List all hostgroups which appear in component_*.yaml
+[ACCUMULO_MASTER]
+[KAFKA_BROKER]
