@@ -6,7 +6,7 @@
   },
   "Requests/resource_filters": [
     {
-      "hosts_predicate": "HostRoles/stale_configs=true"
+      "hosts_predicate": "HostRoles/stale_configs=true&HostRoles/cluster_name={{ ambari_cluster_name }}"
     }
   ]
 }

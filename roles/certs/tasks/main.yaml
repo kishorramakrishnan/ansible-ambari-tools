@@ -10,6 +10,9 @@
   file:
     path: "{{ certs_dir }}"
     state: directory
+    owner: root
+    group: root
+    mode: 0755
 
 - name: create root CA certificate (local)
   delegate_to: localhost
@@ -33,8 +36,8 @@
   become: true
   command: >
     keytool -genkey
-      -alias "{{ ansible_hostname }}"
-      -dname "CN={{ ansible_hostname }},{{ certs_jks_subject_suffix }}"
+      -alias "{{ ansible_fqdn }}"
+      -dname "CN={{ ansible_fqdn }},{{ certs_jks_subject_suffix }}"
       -keystore "{{ certs_jks_file }}"
       -keypass "{{ certs_jks_key_password }}"
       -storepass "{{ certs_jks_store_password }}"
@@ -44,11 +47,19 @@
     chdir: "{{ certs_dir }}"
     creates: "{{ certs_jks_file }}"
 
+- name: change ownership of keystore file
+  become: true
+  file:
+    path: "{{ certs_dir }}/{{ certs_jks_file }}"
+    owner: root
+    group: root
+    mode: 0644
+
 - name: create certificate request
   become: true
   command: >
     keytool -certreq
-      -alias "{{ ansible_hostname }}"
+      -alias "{{ ansible_fqdn }}"
       -file "{{ certs_jks_req }}"
       -keystore "{{ certs_jks_file }}"
       -keypass "{{ certs_jks_key_password }}"
@@ -108,7 +119,7 @@
   loop:
     - alias: "{{ certs_ca_alias }}"
       file: "{{ certs_ca_cert }}"
-    - alias: "{{ ansible_hostname }}"
+    - alias: "{{ ansible_fqdn }}"
       file: "{{ certs_jks_cert }}"
   loop_control:
     label: "{{ item.alias }}"
