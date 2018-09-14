@@ -31,7 +31,7 @@ except ImportError:
     from configparser import ConfigParser
 
 try:
-    import urlparse
+    from urlparse import urlparse
 except ImportError:
     from urllib.parse import urlparse
 
@@ -77,7 +77,8 @@ def list_running_hosts(config):
     parser = urlparse(config['ambari_url'])
     client = Ambari(host=parser.hostname, port=parser.port,
                     protocol=parser.scheme,
-                    username=config['ambari_user'], password=config['ambari_password'])
+                    username=config['ambari_user'], password=config['ambari_password'],
+                    validate_ssl=False)
     cluster = next(client.clusters)
 
     inventory = collections.defaultdict(
