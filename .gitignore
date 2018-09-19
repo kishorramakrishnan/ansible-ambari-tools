@@ -1,3 +1,4 @@
 /certs/
 /ambari.cfg
 .venv/
+.idea/
