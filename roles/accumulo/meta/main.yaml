@@ -1,0 +1,3 @@
+dependencies:
+  - certs_common
+  - ambari_config

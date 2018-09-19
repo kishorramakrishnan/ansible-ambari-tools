@@ -1,0 +1,15 @@
+---
+- hosts: localhost
+  run_once: true
+  pre_tasks:
+    - name: gathering cluster side configs as facts
+      run_once: true
+      delegate_to: "{{ ambari_host }}"
+      ambari_component_facts:
+        protocol: http
+        port: 8080
+        username: "{{ ambari_user }}"
+        password: "{{ ambari_password }}"
+        cluster_name: "{{ ambari_cluster_name }}"
+  roles:
+    - name: nifi

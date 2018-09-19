@@ -1,0 +1,21 @@
+nifi_security_properties:
+  nifi.node.ssl.isenabled: true
+  nifi.security.needClientAuth: False
+  nifi.security.keystore: "{{ certs_dir }}/{{ certs_jks_file }}"
+  nifi.security.keystorePasswd: "{{ certs_jks_key_password }}"
+  nifi.security.keystoreType: JKS
+  nifi.security.truststore: "{{ certs_dir }}/{{ certs_jks_file }}"
+  nifi.security.truststorePasswd: "{{ certs_jks_key_password }}"
+  nifi.security.truststoreType: JKS
+ranger:
+  enabled: "{{ ambari_component_facts['ranger-nifi-plugin-properties']['ranger-nifi-plugin-enabled']|bool }}"
+  additional_elements: # these elements should only be included if ranger is disabled
+    nifi.initial.admin.identity: hrt_qa@HDF.COM
+    # we cannot user template lookup like this:
+    # content: "{{ lookup('template', 'node_identity.xml.j2')|quote }}"
+    # only inline jinja2 (coming from vars/)
+    content: "{{ node_identity_rendered|quote }}"
+
+# these dicts / variables are used by `include_role: 'ambari_config'`. Ansible was never looking for the node_identity.xml.j2 in the current role's templates dir, eg.: `ansible-wire-encryption/roles/nifi/templates` had to use inline jinja2
+ambari_component_name: nifi-ambari-ssl-config
+ambari_component_props: "{{ ranger.enabled | ternary(nifi_security_properties, nifi_security_properties | combine(ranger.additional_elements)) }}"

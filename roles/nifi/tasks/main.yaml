@@ -1,0 +1,4 @@
+---
+- name: invoke ambari configuration role to save configurations for NiFi
+  include_role:
+    name: ambari_config

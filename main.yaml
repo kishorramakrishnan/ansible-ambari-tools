@@ -1,3 +1,4 @@
 - import_playbook: certs.yaml
-- import_playbook: component_accumulo.yaml
 - import_playbook: component_kafka.yaml
+- import_playbook: component_accumulo.yaml
+- import_playbook: component_nifi.yaml
