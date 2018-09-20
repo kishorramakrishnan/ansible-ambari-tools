@@ -1,6 +1,6 @@
 nifi_security_properties:
   nifi.node.ssl.isenabled: true
-  nifi.security.needClientAuth: False
+  nifi.security.needClientAuth: false
   nifi.security.keystore: "{{ certs_dir }}/{{ certs_jks_file }}"
   nifi.security.keystorePasswd: "{{ certs_jks_key_password }}"
   nifi.security.keystoreType: JKS

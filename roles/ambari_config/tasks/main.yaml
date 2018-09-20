@@ -1,16 +1,24 @@
-# TODO: make property update idempotent
 - name: update ambari property for {{ ambari_component_name }}
   delegate_to: '{{ ambari_host }}'
   run_once: true
-  command: >
-    /var/lib/ambari-server/resources/scripts/configs.py
-      -a set
-      -l localhost
-      -n {{ ambari_cluster_name }}
-      -c {{ ambari_component_name }}
-      -k {{ item.key }}
-      -v {{ item.value }}
-  with_dict: '{{ ambari_component_props }}'
+  ambari_cluster_config:
+    protocol: http
+    host: localhost
+    port: 8080
+    username: admin
+    password: admin
+    cluster_name: "{{ ambari_cluster_name }}"
+    config_type: "{{ ambari_component_name }}"
+    ignore_secret: true
+    timeout_sec: 10
+    config_map: |
+       {% set local_dict = {}  %}
+       {% for k in ambari_component_props %}
+       {% set ret = local_dict.update( {k: {'value': ambari_component_props[k] } } ) %}
+       {% endfor %}
+       {{ local_dict|to_json }}
+
+
 
 - name : restart stale components if needed
   delegate_to: localhost
