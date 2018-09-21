@@ -1,3 +1,17 @@
+---
+- hosts: all
+  tasks:
+  - name: gathering cluster side configs as facts
+    run_once: true
+    ambari_component_facts:
+      protocol: http
+      port: 8080
+      host: "{{ ambari_host }}"
+      username: "{{ ambari_user }}"
+      password: "{{ ambari_password }}"
+      cluster_name: "{{ ambari_cluster_name }}"
+
 - import_playbook: certs.yaml
-- import_playbook: component_accumulo.yaml
 - import_playbook: component_kafka.yaml
+- import_playbook: component_accumulo.yaml
+- import_playbook: component_nifi.yaml

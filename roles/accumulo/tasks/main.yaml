@@ -1,0 +1,7 @@
+---
+- name: Invoke Ambari config role, to save configs for Accumulo
+  import_role:
+    name: ambari_config
+  vars:
+    ambari_component_section_name: "{{ accumulo_config_type }}"
+    ambari_component_props: "{{ accumulo_config_props }}"

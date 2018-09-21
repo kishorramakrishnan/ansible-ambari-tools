@@ -1,0 +1,14 @@
+node_identity_rendered: |
+          {% set count = namespace(i=1) %}
+          {% for group in groups_to_render %}
+          {% for host in group['cn'] %}
+          <property name="Node Identity {{ count.i }}">CN={{ host }}, OU={{ group['ou'] }}</property>
+          {% set count.i = count.i + 1 %}
+          {% endfor %}
+          {% endfor %}
+
+groups_to_render:
+  - cn: "{{ groups['NIFI_MASTER'] }}"
+    ou: "NIFI"
+#  - cn: "{{ groups['KNOX_GATEWAY'] }}"
+#    ou: "KNOX"

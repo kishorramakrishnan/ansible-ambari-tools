@@ -1,12 +1,4 @@
+---
 - hosts: ACCUMULO_MASTER
   roles:
-    - name: ambari_config
-      ambari_component_name: accumulo-site
-      ambari_component_props:
-        monitor.ssl.keyStore: "{{ certs_dir }}/{{ certs_jks_file }}"
-        monitor.ssl.keyStoreType: JKS
-        monitor.ssl.keyStorePassword: "{{ certs_jks_store_password }}"
-        monitor.ssl.trustStore: "{{ certs_dir }}/{{ certs_jks_file }}"
-        monitor.ssl.trustStorePassword: "{{ certs_jks_store_password }}"
-        monitor.ssl.trustStoreType: JKS
-        rpc.sasl.qop: auth-conf
+    - name: accumulo

@@ -1,0 +1,7 @@
+---
+- name: Invoke Ambari config role, to save configs for NiFi
+  import_role:
+    name: ambari_config
+  vars:
+    ambari_component_section_name: "{{ nifi_config_type }}"
+    ambari_component_props: "{{ nifi_config_props }}"
