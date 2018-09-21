@@ -1,0 +1,3 @@
+ranger_plugin:
+  nifi:
+    enabled: "{{ ambari_component_facts['ranger-nifi-plugin-properties']['ranger-nifi-plugin-enabled']|bool }}"
