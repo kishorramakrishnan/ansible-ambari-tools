@@ -15,5 +15,5 @@ additional_elements: # these elements should only be included if ranger is disab
   content: "{{ node_identity_rendered }}"
 
 # these dicts / variables are used by `include_role: 'ambari_config'`. Ansible was never looking for the node_identity.xml.j2 in the current role's templates dir, eg.: `ansible-wire-encryption/roles/nifi/templates` had to use inline jinja2
-ambari_component_name: nifi-ambari-ssl-config
-ambari_component_props: "{{ ranger_plugin.nifi.enabled | ternary(nifi_security_properties, nifi_security_properties | combine(additional_elements)) }}"
+nifi_config_type: nifi-ambari-ssl-config
+nifi_config_props: "{{ ranger_plugin.nifi.enabled | ternary(nifi_security_properties, nifi_security_properties | combine(additional_elements)) }}"

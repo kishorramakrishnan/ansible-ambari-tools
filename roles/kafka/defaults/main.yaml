@@ -1,5 +1,5 @@
-ambari_component_name: kafka-broker
-ambari_component_props:
+kafka_config_type: kafka-broker
+kafka_config_props:
   listeners: PLAINTEXT://localhost:6667,SSL://localhost:6666
   ssl.key.password: "{{ certs_jks_key_password }}"
   ssl.keystore.location: "{{ certs_dir }}/{{ certs_jks_file }}"

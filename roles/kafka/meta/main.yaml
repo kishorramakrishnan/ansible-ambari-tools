@@ -2,4 +2,3 @@
 dependencies:
   - certs_common
   - security_common
-  - ambari_config

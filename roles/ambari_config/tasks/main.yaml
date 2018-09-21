@@ -1,14 +1,14 @@
-- name: update ambari property for {{ ambari_component_name }}
-  delegate_to: '{{ ambari_host }}'
+- name: update ambari property for {{ ambari_component_section_name }}
+  delegate_to: localhost
   run_once: true
   ambari_cluster_config:
     protocol: http
-    host: localhost
+    host: "{{ ambari_host }}"
     port: 8080
     username: admin
     password: admin
     cluster_name: "{{ ambari_cluster_name }}"
-    config_type: "{{ ambari_component_name }}"
+    config_type: "{{ ambari_component_section_name }}"
     ignore_secret: true
     timeout_sec: 10
     config_map: |
