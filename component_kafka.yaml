@@ -1,5 +1,4 @@
 ---
 - hosts: localhost
-  run_once: true
   roles:
     - name: kafka
