@@ -1,4 +1,4 @@
 ---
-- hosts: localhost
+- hosts: ACCUMULO_MASTER
   roles:
     - name: accumulo

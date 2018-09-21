@@ -1,4 +1,4 @@
 ---
-- hosts: localhost
+- hosts: NIFI_MASTER
   roles:
     - name: nifi
