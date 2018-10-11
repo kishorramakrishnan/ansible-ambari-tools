@@ -1,0 +1,126 @@
+---
+- name: Save gateway related changes for NiFi
+  include_role:
+    name: ambari_configure_service
+  vars:
+    ambari_component_section_name: "nifi-properties"
+    ambari_component_props:
+      nifi.web.proxy.context.path:
+        value: "/{{ ambari_component_configs['gateway-site']['gateway.path'] }}/flow-management/nifi-app"
+      nifi.web.proxy.host:
+        value: >-
+          {%- set l = []  -%}
+          {%- for h in  groups['KNOX_GATEWAY'] -%}{{ l.append(h+":"+ambari_component_configs["gateway-site"]["gateway.port"]|string) }}{%- endfor -%}
+          {{ l|join(',') }}
+
+- name: Create KNOX Certificate
+  include_role:
+    name: certs
+  vars:
+    component_prefix: knox
+    OU: KNOX
+    certs_dir: /etc/wire_encryption/knox
+
+- name: Importing nifi-knox JKS to Knox gateway.jks
+  become: true
+  command: >
+    keytool
+      -importkeystore
+      -srckeystore /etc/wire_encryption/knox/certs.jks
+      -srcstorepass "{{ certs_jks_key_password }}"
+      -deststoretype JKS
+      -destkeystore /usr/hdf/current/knox-server/data/security/keystores/gateway.jks
+      -deststorepass "{{ knox_master_secret }}"
+      -destkeypass "{{ knox_master_secret }}"
+      -noprompt
+
+- name: "Write out knox-sso.xml"
+  delegate_to: localhost
+  copy:
+    content: "{{ ambari_component_configs['knoxsso-topology']['content'] }}"
+    dest: knox-sso.xml
+
+- name: "knox-sso xml: Update KNOX SSO TTL"
+  delegate_to: localhost
+  xml:
+    path: knox-sso.xml
+    xpath: /topology/service[role='KNOXSSO']/param[name='knoxsso.token.ttl']/value
+    value: "36000000"
+
+- name: "knox-sso xml: check if redirect whitelist regexp exists"
+  delegate_to: localhost
+  xml:
+    path: knox-sso.xml
+    xpath: /topology/service[role='KNOXSSO']/param[name='knoxsso.redirect.whitelist.regex']
+    count: true
+  register: whitelist
+
+- name: "knox-sso xml: redirect whitelist regexp / adding nodes"
+  delegate_to: localhost
+  xml:
+    path: knox-sso.xml
+    xpath: /topology/service[role='KNOXSSO']
+    add_children:
+      - param:
+          _:
+            - name: knoxsso.redirect.whitelist.regex
+            - value: "{{ knox_redirect_whitelist_regex }}"
+  when: whitelist.count == 0
+
+- name: "knox-sso xml: redirect whitelist regexp / modifying existing"
+  delegate_to: localhost
+  xml:
+    path: knox-sso.xml
+    xpath: "/topology/service[role='KNOXSSO']/param[name='knoxsso.redirect.whitelist.regex']/value"
+    value: "{{ knox_redirect_whitelist_regex }}"
+  when: whitelist.count > 0
+
+- name: Saving Knox SSO xml to Ambari
+  include_role:
+    name: ambari_configure_service
+  vars:
+    ambari_component_section_name: "knoxsso-topology"
+    ambari_component_props:
+      content:
+        value: "{{ lookup('file', 'knox-sso.xml') }}"
+
+- name: "Update Knox NiFi service xml"
+  become: true
+  xml:
+    path: /usr/hdf/current/knox-server/data/services/nifi/1.4.0/service.xml
+    xpath: /service/dispatch
+    attribute: use-two-way-ssl
+    value: "true"
+
+- name: Export gateway identity pem
+  become: true
+  command: >
+    ./knoxcli.sh export-cert
+  args:
+    chdir: /usr/hdf/current/knox-server/bin/
+    creates: /usr/hdf/current/knox-server/data/security/keystores/gateway-identity.pem
+
+- name: fetch gateway identity
+  become: true
+  fetch:
+    src:  /usr/hdf/current/knox-server/data/security/keystores/gateway-identity.pem
+    dest: "{{ certs_local_dir }}/knox/"
+    flat: yes
+  args:
+    creates: "{{ certs_local_dir }}/knox/gateway-identity.pem"
+
+- name: check if LDAP is running
+  become: true
+  command: >
+    ./ldap.sh status
+  args:
+    chdir: /usr/hdf/current/knox-server/bin/
+  register: ldap_status
+
+- name: start LDAP
+  become: true
+  command: >
+    ./ldap.sh status
+  args:
+    chdir: /usr/hdf/current/knox-server/bin/
+  when: '"LDAP is not running" not in ldap_status.stdout'

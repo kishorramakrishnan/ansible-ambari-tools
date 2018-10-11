@@ -1,0 +1,17 @@
+---
+- hosts: all
+  tasks:
+    - name: "Installing service"
+      include_role:
+        name: ambari_install_service
+      vars:
+        service_name: C2 # it is case sensitive!
+        conf_overrides:
+          c2-properties:
+            c2.web.host: "{{ ambari_host }}"
+            c2.nifi.registry.url: "{{ ambari_component_configs['nifi-registry-ambari-ssl-config']['nifi.registry.ssl.isenabled']|bool|ternary('https', 'http') }}://{{ groups['NIFI_REGISTRY_MASTER'][0] }}:{{ ambari_component_configs['nifi-registry-ambari-ssl-config']['nifi.registry.ssl.isenabled']|bool|ternary(ambari_component_configs['nifi-registry-ambari-config']['nifi.registry.port.ssl'], ambari_component_configs['nifi-registry-ambari-config']['nifi.registry.port']) }}"
+            c2.db.password: asdqwe123!@#
+        service_components:
+          - component: C2
+            hosts:
+              - "{{ ambari_host }}"

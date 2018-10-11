@@ -1,0 +1,23 @@
+---
+- hosts: all
+  tasks:
+    - name: Install DFO mpack
+      include_role:
+        name: ambari_install_mpack
+      vars:
+        mpack_stack_name: DFO
+        mpack_stack_version: "1.0.0.0"
+        mpack_component_name: c2-mpack
+        mpack_component_archive_name: c2-ambari-mpack
+        re_os: centos7
+
+
+    - name: Install SMM mpack
+      include_role:
+        name: ambari_install_mpack
+      vars:
+        mpack_stack_name: SMM
+        mpack_stack_version: "1.1.0.0"
+        mpack_component_name: streams_messaging_manager
+        mpack_component_archive_name: smm-ambari-mpack
+        re_os: centos7

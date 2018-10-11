@@ -1,0 +1,14 @@
+OU: Engineering
+O: Hortonworks
+L: Santa Clara
+ST: CA
+C: US
+certs_dir: /etc/wire_encryption/kafka
+
+ssl_listeners:
+  - PLAINTEXT://localhost:6668
+  - SSL://localhost:6669
+
+sasl_listeners:
+  - SASL_PLAINTEXT://localhost:6670
+  - SASL_SSL://localhost:6671

@@ -1,0 +1,221 @@
+---
+- name: "Check if {{ service_name }} exists"
+  run_once: true
+  delegate_to: localhost
+  uri:
+    url: "{{ ambari_url }}/api/v1/clusters/{{ ambari_cluster_name }}/services/{{ service_name }}"
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    status_code: 404,200
+    headers:
+      X-Requested-By: ambari
+    force_basic_auth: true
+  register: service_check
+
+- name: "Create {{ service_name }} service"
+  run_once: true
+  delegate_to: localhost
+  uri:
+    url: "{{ ambari_url }}/api/v1/clusters/{{ ambari_cluster_name }}/services"
+    method: POST
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    body_format: json
+    status_code: 201
+    body: "{{ lookup('template', 'create_service.json.j2') }}"
+    headers:
+      X-Requested-By: ambari
+      Content-Type: application/x-www-form-urlencoded
+    force_basic_auth: true
+  when: service_check.status == 404 # create service only if not existing
+
+- name: "Check if service {{ service_name }} has any components"
+  run_once: true
+  delegate_to: localhost
+  uri:
+    url: "{{ ambari_url }}/api/v1/clusters/{{ ambari_cluster_name }}/services/{{ service_name }}/components"
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    status_code: 200
+    headers:
+      X-Requested-By: ambari
+    force_basic_auth: true
+  register: component_check
+
+- name: "Add components to {{ service_name }} service"
+  run_once: true
+  delegate_to: localhost
+  uri:
+    url: "{{ ambari_url }}/api/v1/clusters/{{ ambari_cluster_name }}/services/{{ service_name }}/components/{{ item.component }}"
+    method: POST
+    user: "{{ ambari_user }}"
+    status_code: 201
+    body_format: json
+    password: "{{ ambari_password }}"
+    body: "{{ lookup('template', 'add_components_to_service.json.j2') }}"
+    headers:
+      X-Requested-By: ambari
+      Content-Type: application/x-www-form-urlencoded
+    force_basic_auth: true
+  loop: "{{ service_components }}"
+  when: component_check.json['items'] | length == 0
+
+- name: "Get default configs for service being installed"
+  run_once: true
+  delegate_to: localhost
+  uri:
+    url: "{{ ambari_url }}/api/v1/stacks/{{ host_stack }}/versions/{{ host_stack_version }}/services/{{ service_name }}?fields=*,configurations/StackConfigurations/*"
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    headers:
+      X-Requested-By: ambari
+    force_basic_auth: true
+  register: default_service_configs
+
+- set_fact:
+    config_map: "{{ default_service_configs|group_by_config_types|combine(conf_overrides, recursive=True) }}"
+
+- name: "Get config type to tag mapping (so we can avoid sending configs if they are existing on the cluster)"
+  run_once: true
+  delegate_to: localhost
+  uri:
+    url: "{{ ambari_url }}/api/v1/clusters/{{ ambari_cluster_name }}/configurations"
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    headers:
+      X-Requested-By: ambari
+    force_basic_auth: true
+  register: existing_configtype_tags_response
+
+
+- name: Post initial configs
+  run_once: true
+  delegate_to: localhost
+  uri:
+    url: "{{ ambari_url }}/api/v1/clusters/{{ ambari_cluster_name }}/configurations"
+    method: POST
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    body: "{{ item|to_json }}"
+    body_format: json
+    status_code: 201
+    headers:
+      X-Requested-By: ambari
+      Content-Type: application/x-www-form-urlencoded
+    force_basic_auth: true
+  loop: "{{ config_map|to_initial_conf_request(initial_tag=initial_tag)|filter_existing_tags(existing_configtype_tags_response) }}"
+
+- name: Apply initial configs
+  run_once: true
+  delegate_to: localhost
+  uri:
+    url: "{{ ambari_url }}/api/v1/clusters/{{ ambari_cluster_name }}"
+    method: PUT
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    body_format: json
+    body: "{{ lookup('template', 'initial_configs.json.j2') }}"
+    headers:
+      X-Requested-By: ambari
+      Content-Type: application/x-www-form-urlencoded
+    force_basic_auth: true
+  loop: "{{ lookup('dict', config_map) }}"
+
+- name: Create component to hosts mapping
+  run_once: true
+  delegate_to: localhost
+  uri:
+    url: "{{ ambari_url }}/api/v1/clusters/{{ ambari_cluster_name }}/hosts?Hosts/host_name={{ item.1 }}"
+    method: POST
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    body: "{{ lookup('template', 'component_to_host_mapping.json.j2') }}"
+    body_format: json
+    status_code: 201
+    headers:
+      X-Requested-By: ambari
+      Content-Type: application/x-www-form-urlencoded
+    force_basic_auth: true
+  loop: "{{ service_components |subelements('hosts') }}"
+
+- name: Finalizing service install
+  run_once: true
+  delegate_to: localhost
+  uri:
+    url: "{{ ambari_url }}/api/v1/clusters/{{ ambari_cluster_name }}/services/{{ service_name }}"
+    method: PUT
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    return_content: yes
+    body_format: json
+    status_code: 202
+    body: "{{ lookup('template', 'install_service.json.j2') }}"
+    headers:
+      X-Requested-By: ambari
+      Content-Type: application/x-www-form-urlencoded
+    force_basic_auth: true
+  register: service_install_request
+  changed_when: service_install_request.content
+
+- name: "Wait for {{ service_name }} service to install"
+  run_once: true
+  delegate_to: localhost
+  uri:
+    url: "{{ service_install_request.json['href'] }}"
+    timeout: '{{ ambari_http_timeout }}'
+    method: GET
+    force_basic_auth: true
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    return_content: yes
+    headers:
+      X-Requested-By: ambari
+      Content-Type: text/plain
+    validate_certs: no
+    status_code: 200
+  register: service_install_response
+  delay: '{{ ambari_http_delay }}'
+  retries: '{{ ambari_http_retries }}'
+  until: service_install_response.json["Requests"]["request_status"] == 'COMPLETED'
+  when: service_install_request.content
+
+- name: Start the service
+  run_once: true
+  delegate_to: localhost
+  uri:
+    url: "{{ ambari_url }}/api/v1/clusters/{{ ambari_cluster_name }}/services/{{ service_name }}"
+    method: PUT
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    body_format: json
+    return_content: yes
+    status_code: 202
+    body: "{{ lookup('template', 'start_service.json.j2') }}"
+    headers:
+      X-Requested-By: ambari
+      Content-Type: application/x-www-form-urlencoded
+    force_basic_auth: true
+  register: service_start_request
+  changed_when: service_start_request.content
+
+- name: "Wait for {{ service_name }} service to start"
+  run_once: true
+  delegate_to: localhost
+  uri:
+    url: "{{ service_start_request.json['href'] }}"
+    timeout: '{{ ambari_http_timeout }}'
+    method: GET
+    force_basic_auth: true
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    return_content: yes
+    headers:
+      X-Requested-By: ambari
+      Content-Type: text/plain
+    validate_certs: no
+    status_code: 200
+  register: service_start_response
+  delay: '{{ ambari_http_delay }}'
+  retries: '{{ ambari_http_retries }}'
+  until: service_start_response.json['Requests']['request_status'] == 'COMPLETED'
+  when: service_start_request.content

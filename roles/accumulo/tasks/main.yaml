@@ -1,7 +1,13 @@
 ---
+- name: Invoke wire encryption for Accumulo
+  import_role:
+    name: certs
+  vars:
+    component_prefix: accumulo
+
 - name: Invoke Ambari config role, to save configs for Accumulo
   import_role:
-    name: ambari_config
+    name: ambari_configure_service
   vars:
     ambari_component_section_name: "{{ accumulo_config_type }}"
     ambari_component_props: "{{ accumulo_config_props }}"

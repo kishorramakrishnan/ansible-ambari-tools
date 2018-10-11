@@ -7,7 +7,7 @@ certs_jks_file: certs.jks
 certs_jks_req: certs.req
 certs_jks_cert: certs.crt
 certs_jks_keysize: 2048
-certs_jks_subject_suffix: "OU=Engineering,O=Hortonworks,L=Santa Clara,ST=CA,C=US"
+certs_jks_subject_suffix: "OU={{ OU }},O={{ O }},L={{ L }},ST={{ ST }},C={{ C }}"
 
 certs_ca_cert: ca.crt
 certs_ca_alias: "Hortonworks Internal Root CA"

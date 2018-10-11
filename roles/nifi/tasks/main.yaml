@@ -1,7 +1,22 @@
 ---
-- name: Invoke Ambari config role, to save configs for NiFi
-  import_role:
-    name: ambari_config
+- name: Invoke wire encryption
+  include_role:
+    name: certs
+  vars:
+    component_prefix: nifi
+
+- name: remove users and authorization files
+  become: true
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /var/lib/nifi/conf/users.xml
+    - /var/lib/nifi/conf/authorizations.xml
+
+- name: Save SSL configs for NiFi
+  include_role:
+    name: ambari_configure_service
   vars:
     ambari_component_section_name: "{{ nifi_config_type }}"
     ambari_component_props: "{{ nifi_config_props }}"

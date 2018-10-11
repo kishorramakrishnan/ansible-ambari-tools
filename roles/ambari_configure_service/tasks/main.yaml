@@ -1,0 +1,17 @@
+---
+- name: update Ambari conf at section of {{ ambari_component_section_name }}
+  delegate_to: localhost
+  run_once: true
+  ambari_cluster_config:
+    protocol: http
+    host: "{{ ambari_host }}"
+    port: 8080
+    username: admin
+    password: admin
+    cluster_name: "{{ ambari_cluster_name }}"
+    config_type: "{{ ambari_component_section_name }}"
+    ignore_secret: true
+    timeout_sec: 10
+    config_map: "{{ ambari_component_props }}"
+  notify:
+    - restart stale components

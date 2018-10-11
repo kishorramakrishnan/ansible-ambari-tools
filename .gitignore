@@ -2,3 +2,4 @@
 /ambari.cfg
 .venv/
 .idea/
+*.pyc

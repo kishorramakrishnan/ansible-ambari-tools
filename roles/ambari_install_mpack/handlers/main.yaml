@@ -1,0 +1,8 @@
+---
+- name: Restart Ambari Server
+  become: true
+  run_once: true
+  delegate_to: "{{ ambari_host }}"
+  command: >
+    /etc/init.d/ambari-server restart
+  listen: restart ambari server

@@ -38,6 +38,9 @@ except ImportError:
 # 3rd party libraries
 from ambariclient.client import Ambari
 
+# helper script fetching component configs
+from fetch_configs.ambari_component_facts import get_all_configs
+from fetch_configs.stack_versions import get_stack_versions
 
 def get_ambari_config():
     """
@@ -98,6 +101,23 @@ def list_running_hosts(config):
     for comp in cluster.host_components:
         inventory[comp.component_name]['hosts'].append(comp.host_name)
 
+    # configs for all the components
+    component_configs = get_all_configs(parser.scheme,
+                                        parser.hostname,
+                                        parser.port,
+                                        parser.path,
+                                        config['ambari_user'],
+                                        config['ambari_password'],
+                                        cluster.cluster_name)
+    # stack versions
+
+    stack, version = get_stack_versions(parser.scheme,
+                                        parser.hostname,
+                                        parser.port,
+                                        parser.path,
+                                        config['ambari_user'],
+                                        config['ambari_password'],
+                                        cluster.cluster_name)
     # group_vars
     inventory['all']['vars'] = {
         'ambari_cluster_name': cluster.cluster_name,
@@ -105,7 +125,11 @@ def list_running_hosts(config):
         'ambari_password': config['ambari_password'],
         'ambari_url': config['ambari_url'],
         'ambari_user': config['ambari_user'],
+        'ambari_component_configs': component_configs,
+        'host_stack': stack,
+        'host_stack_version': version
     }
+
 
     return inventory
 

@@ -19,7 +19,9 @@
   command: >
     openssl req
       -new
-      -x509 
+      -x509
+      -sha256
+      -newkey "rsa:2048"
       -subj "{{ certs_ca_subject }}"
       -keyout "{{ certs_ca_key }}"
       -out "{{ certs_ca_cert }}"
@@ -35,14 +37,16 @@
 - name: create keystore file
   become: true
   command: >
-    keytool -genkey
+    keytool -genkeypair
       -alias "{{ ansible_fqdn }}"
       -dname "CN={{ ansible_fqdn }},{{ certs_jks_subject_suffix }}"
       -keystore "{{ certs_jks_file }}"
       -keypass "{{ certs_jks_key_password }}"
       -storepass "{{ certs_jks_store_password }}"
       -keyalg RSA
+      -sigalg SHA256withRSA
       -keysize "{{ certs_jks_keysize }}"
+      -ext "SAN=dns:{{ ansible_fqdn }}"
   args:
     chdir: "{{ certs_dir }}"
     creates: "{{ certs_jks_file }}"
@@ -64,33 +68,52 @@
       -keystore "{{ certs_jks_file }}"
       -keypass "{{ certs_jks_key_password }}"
       -storepass "{{ certs_jks_store_password }}"
+      -ext "SAN=dns:{{ ansible_fqdn }}"
   args:
     chdir: "{{ certs_dir }}"
     creates: "{{ certs_jks_req }}"
+
+- name: create openssl config to include SAN (SubjectAlternativeNames)
+  become: true
+  template:
+    src: san.cnf.j2
+    dest: "{{ certs_dir }}/san_{{ ansible_fqdn }}.cnf"
 
 - name: pull certificate requests
   become: true
   fetch:
     src: "{{ certs_dir}}/{{ certs_jks_req }}"
-    dest: "{{ certs_local_dir }}/{{ inventory_hostname }}_{{ certs_jks_req }}"
+    dest: "{{ certs_local_dir }}/{{ component_prefix }}/{{ inventory_hostname }}_{{ certs_jks_req }}"
     flat: yes
   args:
-    creates: "{{ certs_local_dir }}/{{ inventory_hostname }}_{{ certs_jks_req }}"
+    creates: "{{ certs_local_dir }}/{{ component_prefix }}/{{ inventory_hostname }}_{{ certs_jks_req }}"
+
+- name: pull openssl conf files needed for signing with SAN extension
+  become: true
+  fetch:
+    src: "{{ certs_dir}}/san_{{ inventory_hostname }}.cnf"
+    dest: "{{ certs_local_dir }}/{{ component_prefix }}/san_{{ inventory_hostname }}.cnf"
+    flat: yes
+  args:
+    creates: "{{ certs_local_dir }}/{{ component_prefix }}/san_{{ inventory_hostname }}.cnf"
 
 - name: sign certificate requests (local)
   delegate_to: localhost
   command: >
-    openssl x509 -req
-      -in "{{ inventory_hostname }}_{{ certs_jks_req }}"
-      -out "{{ inventory_hostname }}_{{ certs_jks_cert }}"
+    openssl x509
+      -req
+      -in "{{ component_prefix }}/{{ inventory_hostname }}_{{ certs_jks_req }}"
+      -out "{{ component_prefix }}/{{ inventory_hostname }}_{{ certs_jks_cert }}"
       -days "{{ certs_ca_sign_days }}"
       -CA "{{ certs_ca_cert }}"
       -CAkey "{{ certs_ca_key }}"
       -CAcreateserial
       -passin "pass:{{ certs_ca_password }}"
+      -extensions v3_req
+      -extfile "{{ component_prefix }}/san_{{ inventory_hostname }}.cnf"
   args:
     chdir: "{{ certs_local_dir }}"
-    creates: "{{ inventory_hostname }}_{{ certs_jks_cert }}"
+    creates: "{{ component_prefix }}/{{ inventory_hostname }}_{{ certs_jks_cert }}"
   when: certs_use_local_ca
 
 - name: sign certificate requests (external)
@@ -103,19 +126,23 @@
   copy:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
+    mode: 0644
   loop:
-    - src: "{{ certs_local_dir }}/{{ inventory_hostname }}_{{ certs_jks_cert }}"
+    - src: "{{ certs_local_dir }}/{{ component_prefix }}/{{ inventory_hostname }}_{{ certs_jks_cert }}"
       dest: "{{ certs_dir}}/{{ certs_jks_cert }}"
     - src: "{{ certs_local_dir }}/{{ certs_ca_cert }}"
       dest: "{{ certs_dir }}/{{ certs_ca_cert }}"
 
 - name: import certificates
   become: true
-  java_cert:
-    cert_alias: "{{ item.alias }}"
-    cert_path: "{{ certs_dir }}/{{ item.file }}"
-    keystore_path: "{{ certs_dir }}/{{ certs_jks_file }}"
-    keystore_pass: "{{ certs_jks_store_password }}"
+  command: >
+    keytool -import
+      -keystore "{{ certs_dir }}/{{ certs_jks_file }}"
+      -alias "{{ item.alias }}"
+      -file "{{ certs_dir }}/{{ item.file }}"
+      -keypass "{{ certs_jks_key_password }}"
+      -storepass "{{ certs_jks_store_password }}"
+      -noprompt
   loop:
     - alias: "{{ certs_ca_alias }}"
       file: "{{ certs_ca_cert }}"

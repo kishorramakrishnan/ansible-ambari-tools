@@ -1,0 +1,81 @@
+---
+- name: "Get latest {{ mpack_stack_name }} build version from RE API"
+  run_once: true
+  delegate_to: localhost
+  uri:
+    url: "http://release.eng.hortonworks.com/hwre-api/stackinfo?stack={{ mpack_stack_name }}&build_type=dev"
+    method: GET
+    body_format: json
+  register: stack_info_resp
+
+- set_fact:
+    latest_build: "{{ stack_info_resp.json[mpack_stack_version].last_sucessful_build }}"
+    major_digit: "{{ stack_info_resp.json[mpack_stack_version].last_sucessful_build[0] }}"
+
+- set_fact:
+    base_url: "http://s3.amazonaws.com/dev.hortonworks.com/{{ mpack_stack_name }}/{{ re_os }}/{{ major_digit }}.x/BUILDS"
+
+- name: "Get mpack version for {{ mpack_stack_name }}"
+  run_once: true
+  delegate_to: localhost
+  uri:
+    url: "http://release.eng.hortonworks.com/hwre-api/getbuildmetadata?stack={{ mpack_stack_name }}&release={{ latest_build }}"
+    method: GET
+    headers:
+      accept: application/json
+  register: build_metadata_resp
+
+- set_fact:
+    mpack_tar_gz:  "{{ mpack_component_archive_name }}-{{ build_metadata_resp.json[mpack_component_name]['component_version'] }}.tar.gz"
+
+- name: "Download {{ mpack_stack_name }} mpack"
+  run_once: true
+  become: true
+  delegate_to: "{{ ambari_host }}"
+  get_url:
+    url: "{{ base_url }}/{{ latest_build }}/tars/{{ mpack_component_name }}/{{ mpack_tar_gz }}"
+    dest: /root
+
+- name: "Install {{ mpack_stack_name }} mpack on Ambari Server"
+  become: true
+  run_once: true
+  delegate_to: "{{ ambari_host }}"
+  command: >
+    /etc/init.d/ambari-server install-mpack
+      --force
+      --mpack {{ mpack_tar_gz }}
+  args:
+    chdir: /root
+  notify:
+    - restart ambari server
+
+- meta: flush_handlers
+
+- name: Get repository versions json from Ambari
+  run_once: true
+  delegate_to: localhost
+  uri:
+    url: "{{ ambari_url }}/api/v1/stacks/{{ host_stack }}/versions/{{ host_stack_version }}/repository_versions/1?fields=RepositoryVersions,operating_systems/repositories/Repositories"
+    method: GET
+    user: admin
+    password: admin
+    force_basic_auth: true
+    body_format: json
+    headers:
+      X-Requested-By: ambari
+  register: repository_version_response
+
+- name: "Fixing base url for {{ mpack_stack_name }} on Ambari"
+  run_once: true
+  delegate_to: localhost
+  uri:
+    url: "{{ ambari_url }}/api/v1/stacks/{{ host_stack }}/versions/{{ host_stack_version }}/repository_versions/1"
+    method: PUT
+    user: admin
+    password: admin
+    force_basic_auth: true
+    body_format: json
+    body: "{{ repository_version_response|to_repository_version_update(mpack_stack_name, base_url, latest_build) }}"
+    headers:
+      X-Requested-By: ambari
+      Content-Type: application/x-www-form-urlencoded

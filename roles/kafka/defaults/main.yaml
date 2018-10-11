@@ -1,10 +1,18 @@
 kafka_config_type: kafka-broker
 kafka_config_props:
-  listeners: PLAINTEXT://localhost:6667,SSL://localhost:6666
-  ssl.key.password: "{{ certs_jks_key_password }}"
-  ssl.keystore.location: "{{ certs_dir }}/{{ certs_jks_file }}"
-  ssl.keystore.password: "{{ certs_jks_store_password }}"
-  ssl.keystore.type: JKS
-  ssl.truststore.location: "{{ certs_dir }}/{{ certs_jks_file }}"
-  ssl.truststore.password: "{{ certs_jks_store_password }}"
-  ssl.truststore.type: JKS
+  listeners:
+    value: "{{ ambari_component_configs['cluster-env']['security_enabled'] | bool | ternary(ssl_listeners + sasl_listeners, ssl_listeners) | join(',') }}"
+  ssl.key.password:
+    value: "{{ certs_jks_key_password }}"
+  ssl.keystore.location:
+    value: "{{ certs_dir }}/{{ certs_jks_file }}"
+  ssl.keystore.password:
+    value: "{{ certs_jks_store_password }}"
+  ssl.keystore.type:
+    value: JKS
+  ssl.truststore.location:
+    value: "{{ certs_dir }}/{{ certs_jks_file }}"
+  ssl.truststore.password:
+    value: "{{ certs_jks_store_password }}"
+  ssl.truststore.type:
+    value: JKS

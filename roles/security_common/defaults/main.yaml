@@ -1,3 +1,5 @@
 ranger_plugin:
   nifi:
-    enabled: "{{ ambari_component_facts['ranger-nifi-plugin-properties']['ranger-nifi-plugin-enabled']|bool }}"
+    enabled: "{{ ambari_component_configs['ranger-nifi-plugin-properties']['ranger-nifi-plugin-enabled']|bool }}"
+  kafka:
+    enabled: "{{ ambari_component_configs['ranger-kafka-plugin-properties']['ranger-kafka-plugin-enabled']|bool }}"
