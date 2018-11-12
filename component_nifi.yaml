@@ -1,53 +1,55 @@
 ---
 - hosts: NIFI_MASTER
   vars:
-    nifi_enable_knox_sso: true
+    nifi_enable_knox_sso: "{{ access_proxy_only | default(false) }}"
   tasks:
     - name: Wire encrypt NiFi
       include_role:
         name: nifi
 
 
-#- hosts: KNOX_GATEWAY
-#  vars:
-#    knox_sso_ttl: 36000000
-#    knox_redirect_whitelist_regex: ".*;^/.*$;https?://localhost*$;^http.*$"
-#    knox_master_secret: knoxsecret
-#  tasks:
-#    - name: Setting up NiFi-Knox integration
-#      include_role:
-#        name: nifi
-#        tasks_from: nifi_knox_sso
-#      when: nifi_enable_knox_sso
-#
-#- hosts: NIFI_MASTER
-#  tasks:
-#    - name: check if gateway-identity is present
-#      delegate_to: localhost
-#      run_once: true
-#      stat:
-#        path: ./certs/knox/gateway-identity.pem
-#      register: pem_file
-#
-#    - name: Copy knox's gateway identity to NiFi nodes
-#      become: true
-#      copy:
-#        src: ./certs/knox/gateway-identity.pem
-#        dest: /tmp/gateway-identity.pem
-#        mode: 0755
-#      when: pem_file.stat.exists == True
-#
-#    - name: Update NiFi config with knox values
-#      include_role:
-#        name: ambari_configure_service
-#      vars:
-#        ambari_component_section_name: "nifi-properties"
-#        ambari_component_props:
-#          nifi.security.user.knox.url:
-#            value: "https://{{ groups['KNOX_GATEWAY'][0] }}:{{ ambari_component_configs['gateway-site']['gateway.port']|string }}/gateway/knoxsso/api/v1/websso"
-#          nifi.security.user.knox.publicKey:
-#            value: /tmp/gateway-identity.pem
-#          nifi.security.user.knox.cookieName:
-#            value: hadoop-jwt
-#          nifi.security.user.login.identity.provider:
-#            value: ""
+- hosts: KNOX_GATEWAY
+  vars:
+    knox_sso_ttl: 36000000
+    knox_redirect_whitelist_regex: ".*;^/.*$;https?://localhost*$;^http.*$"
+    knox_master_secret: knoxsecret
+  tasks:
+    - name: Setting up NiFi-Knox integration
+      include_role:
+        name: nifi
+        tasks_from: nifi_knox_sso
+
+- hosts: NIFI_MASTER
+  tasks:
+    - name: check if gateway-identity is present
+      delegate_to: localhost
+      run_once: true
+      stat:
+        path: ./certs/knox/gateway-identity.pem
+      register: pem_file
+
+    - name: Copy knox's gateway identity to NiFi nodes
+      become: true
+      copy:
+        src: ./certs/knox/gateway-identity.pem
+        dest: /tmp/gateway-identity.pem
+        mode: 0755
+      when: pem_file.stat.exists == True
+
+    - name: Update NiFi config with knox values
+      run_once: true
+      delegate_to: localhost
+      include_role:
+        name: ambari_configure_service
+      vars:
+        ambari_component_section_name: "nifi-properties"
+        ambari_component_props:
+          nifi.security.user.knox.url:
+            value: "https://{{ groups['KNOX_GATEWAY'][0] }}:{{ ambari_component_configs['gateway-site']['gateway.port']|string }}/gateway/knoxsso/api/v1/websso"
+          nifi.security.user.knox.publicKey:
+            value: /tmp/gateway-identity.pem
+          nifi.security.user.knox.cookieName:
+            value: hadoop-jwt
+          nifi.security.user.login.identity.provider:
+            value: ""
+      when: access_proxy_only | default(false)

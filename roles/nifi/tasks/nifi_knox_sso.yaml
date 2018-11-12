@@ -12,6 +12,7 @@
           {%- set l = []  -%}
           {%- for h in  groups['KNOX_GATEWAY'] -%}{{ l.append(h+":"+ambari_component_configs["gateway-site"]["gateway.port"]|string) }}{%- endfor -%}
           {{ l|join(',') }}
+  when: nifi_enable_knox_sso  # only hook together components instead user wants to turn off direct access and desires access through knox proxy only.
 
 - name: Create KNOX Certificate
   include_role:
@@ -29,51 +30,80 @@
       -srckeystore /etc/wire_encryption/knox/certs.jks
       -srcstorepass "{{ certs_jks_key_password }}"
       -deststoretype JKS
-      -destkeystore /usr/hdf/current/knox-server/data/security/keystores/gateway.jks
+      -destkeystore /usr/{{ host_stack|lower }}/current/knox-server/data/security/keystores/gateway.jks
       -deststorepass "{{ knox_master_secret }}"
       -destkeypass "{{ knox_master_secret }}"
       -noprompt
+
+- name: Check if CA exist in gateway jks
+  become: true
+  command: >
+    keytool
+      -list
+      -keystore /usr/{{ host_stack|lower }}/current/knox-server/data/security/keystores/gateway.jks
+      -alias "{{ certs_ca_alias }}"
+      -storepass "{{ knox_master_secret }}"
+  register: gateway_ca_cert_check
+  failed_when: gateway_ca_cert_check.rc >= 2
+
+- name: Importing CA cert to knox gateway.jks (explicitly since importkeytore fails to import trusted certificate entries)
+  become: true
+  command: >
+    keytool
+      -import
+      -keystore /usr/{{ host_stack|lower }}/current/knox-server/data/security/keystores/gateway.jks
+      -alias "Hortonworks Internal Root CA"
+      -file /etc/wire_encryption/knox/ca.crt
+      -keypass "{{ knox_master_secret }}"
+      -storepass "{{ knox_master_secret }}"
+      -noprompt
+  when: '"does not exist" in gateway_ca_cert_check.stdout'
+
+#  when: '"LDAP is not running" in ldap_status.stdout'
 
 - name: "Write out knox-sso.xml"
   delegate_to: localhost
   copy:
     content: "{{ ambari_component_configs['knoxsso-topology']['content'] }}"
-    dest: knox-sso.xml
+    dest: certs/knox/knox-sso.xml
+  when: nifi_enable_knox_sso  # only hook together components instead user wants to turn off direct access and desires access through knox proxy only.
 
 - name: "knox-sso xml: Update KNOX SSO TTL"
   delegate_to: localhost
   xml:
-    path: knox-sso.xml
+    path: certs/knox/knox-sso.xml
     xpath: /topology/service[role='KNOXSSO']/param[name='knoxsso.token.ttl']/value
     value: "36000000"
+  when: nifi_enable_knox_sso  # only hook together components instead user wants to turn off direct access and desires access through knox proxy only.
 
 - name: "knox-sso xml: check if redirect whitelist regexp exists"
   delegate_to: localhost
   xml:
-    path: knox-sso.xml
+    path: certs/knox/knox-sso.xml
     xpath: /topology/service[role='KNOXSSO']/param[name='knoxsso.redirect.whitelist.regex']
     count: true
   register: whitelist
+  when: nifi_enable_knox_sso  # only hook together components instead user wants to turn off direct access and desires access through knox proxy only.
 
 - name: "knox-sso xml: redirect whitelist regexp / adding nodes"
   delegate_to: localhost
   xml:
-    path: knox-sso.xml
+    path: certs/knox/knox-sso.xml
     xpath: /topology/service[role='KNOXSSO']
     add_children:
       - param:
           _:
             - name: knoxsso.redirect.whitelist.regex
             - value: "{{ knox_redirect_whitelist_regex }}"
-  when: whitelist.count == 0
+  when: nifi_enable_knox_sso and whitelist.count == 0  # only hook together components instead user wants to turn off direct access and desires access through knox proxy only.
 
 - name: "knox-sso xml: redirect whitelist regexp / modifying existing"
   delegate_to: localhost
   xml:
-    path: knox-sso.xml
+    path: certs/knox/knox-sso.xml
     xpath: "/topology/service[role='KNOXSSO']/param[name='knoxsso.redirect.whitelist.regex']/value"
     value: "{{ knox_redirect_whitelist_regex }}"
-  when: whitelist.count > 0
+  when: nifi_enable_knox_sso and whitelist.count > 0  # only hook together components instead user wants to turn off direct access and desires access through knox proxy only.
 
 - name: Saving Knox SSO xml to Ambari
   include_role:
@@ -82,12 +112,13 @@
     ambari_component_section_name: "knoxsso-topology"
     ambari_component_props:
       content:
-        value: "{{ lookup('file', 'knox-sso.xml') }}"
+        value: "{{ lookup('file', 'certs/knox/knox-sso.xml') }}"
+  when: nifi_enable_knox_sso  # only hook together components instead user wants to turn off direct access and desires access through knox proxy only.
 
 - name: "Update Knox NiFi service xml"
   become: true
   xml:
-    path: /usr/hdf/current/knox-server/data/services/nifi/1.4.0/service.xml
+    path: "/usr/{{ host_stack|lower }}/current/knox-server/data/services/nifi/1.4.0/service.xml"
     xpath: /service/dispatch
     attribute: use-two-way-ssl
     value: "true"
@@ -97,13 +128,13 @@
   command: >
     ./knoxcli.sh export-cert
   args:
-    chdir: /usr/hdf/current/knox-server/bin/
-    creates: /usr/hdf/current/knox-server/data/security/keystores/gateway-identity.pem
+    chdir: "/usr/{{ host_stack|lower }}/current/knox-server/bin/"
+    creates: "/usr/{{ host_stack|lower }}/current/knox-server/data/security/keystores/gateway-identity.pem"
 
 - name: fetch gateway identity
   become: true
   fetch:
-    src:  /usr/hdf/current/knox-server/data/security/keystores/gateway-identity.pem
+    src:  "/usr/{{ host_stack|lower }}/current/knox-server/data/security/keystores/gateway-identity.pem"
     dest: "{{ certs_local_dir }}/knox/"
     flat: yes
   args:
@@ -114,13 +145,15 @@
   command: >
     ./ldap.sh status
   args:
-    chdir: /usr/hdf/current/knox-server/bin/
+    chdir: "/usr/{{ host_stack|lower }}/current/knox-server/bin/"
   register: ldap_status
+  failed_when: ldap_status.rc >= 2
+
 
 - name: start LDAP
   become: true
   command: >
-    ./ldap.sh status
+    ./ldap.sh start
   args:
-    chdir: /usr/hdf/current/knox-server/bin/
-  when: '"LDAP is not running" not in ldap_status.stdout'
+    chdir: "/usr/{{ host_stack|lower }}/current/knox-server/bin/"
+  when: '"LDAP is not running" in ldap_status.stdout'

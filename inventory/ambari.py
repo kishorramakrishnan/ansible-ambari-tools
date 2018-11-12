@@ -39,8 +39,9 @@ except ImportError:
 from ambariclient.client import Ambari
 
 # helper script fetching component configs
-from fetch_configs.ambari_component_facts import get_all_configs
-from fetch_configs.stack_versions import get_stack_versions
+from ambari_tools.fetch_configs import get_all_configs
+from ambari_tools.stack_versions import get_stack_versions
+
 
 def get_ambari_config():
     """
