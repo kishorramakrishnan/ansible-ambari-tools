@@ -48,9 +48,9 @@
   uri:
     url: "{{ ambari_url }}/api/v1/clusters/{{ ambari_cluster_name }}/services/{{ service_name }}/components/{{ item.component }}"
     method: POST
-    user: "{{ ambari_user }}"
     status_code: 201
     body_format: json
+    user: "{{ ambari_user }}"
     password: "{{ ambari_password }}"
     body: "{{ lookup('template', 'add_components_to_service.json.j2') }}"
     headers:
@@ -65,10 +65,11 @@
   delegate_to: localhost
   uri:
     url: "{{ ambari_url }}/api/v1/stacks/{{ host_stack }}/versions/{{ host_stack_version }}/services/{{ service_name }}?fields=*,configurations/StackConfigurations/*"
-    user: "{{ ambari_user }}"
-    password: "{{ ambari_password }}"
     headers:
       X-Requested-By: ambari
+      # some version of ansible masks password found in returned json: https://github.com/ansible/ansible/issues/44635#issuecomment-415771504
+      # authenticate using headers instead
+      Authorization: "Basic {{ (ambari_user + ':' + ambari_password) | b64encode }}"
     force_basic_auth: true
   register: default_service_configs
 
@@ -80,10 +81,11 @@
   delegate_to: localhost
   uri:
     url: "{{ ambari_url }}/api/v1/clusters/{{ ambari_cluster_name }}/configurations"
-    user: "{{ ambari_user }}"
-    password: "{{ ambari_password }}"
     headers:
       X-Requested-By: ambari
+      # some version of ansible masks password found in returned json: https://github.com/ansible/ansible/issues/44635#issuecomment-415771504
+      # authenticate using headers instead
+      Authorization: "Basic {{ (ambari_user + ':' + ambari_password) | b64encode }}"
     force_basic_auth: true
   register: existing_configtype_tags_response
 

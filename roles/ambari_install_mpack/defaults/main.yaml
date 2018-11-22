@@ -1,0 +1,4 @@
+# so that we don't hardwire which version field would be used from the RE api:
+# some projects require `component_version` (containing the apache version)
+# but others require the stackversion-dash-buildNumber which is in the `version` field
+re_api_version_selector: component_version
