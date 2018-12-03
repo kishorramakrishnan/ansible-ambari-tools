@@ -88,3 +88,8 @@
     headers:
       X-Requested-By: ambari
       Content-Type: application/x-www-form-urlencoded
+  register: mpack_baseurl_change_response
+  delay: 30
+  retries: 10
+  until: mpack_baseurl_change_response.status != 500
+
