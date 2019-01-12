@@ -1,0 +1,36 @@
+#This is appended by Ambari TeXAS code
+LoadModule proxy_module modules/mod_proxy.so
+LoadModule proxy_http_module modules/mod_proxy_http.so
+LoadModule proxy_balancer_module modules/mod_proxy_balancer.so
+LoadModule ssl_module modules/mod_ssl.so
+LoadModule lbmethod_byrequests_module modules/mod_lbmethod_byrequests.so
+LoadModule lbmethod_bytraffic_module modules/mod_lbmethod_bytraffic.so
+LoadModule lbmethod_bybusyness_module modules/mod_lbmethod_bybusyness.so
+LoadModule lbmethod_heartbeat_module modules/mod_lbmethod_heartbeat.so
+LoadModule slotmem_shm_module modules/mod_slotmem_shm.so
+Listen 444
+<VirtualHost *:444>
+   SSLEngine On
+   SSLProxyEngine On
+   SSLCertificateFile PATH_TO_CERTIFICATE_FILE
+   SSLCertificateKeyFile PATH_TO_CERTIFICATE_KEY_FILE
+   SSLCACertificatePath PATH_TO_CERTIFICATE
+   SSLProxyVerify none
+   SSLProxyCheckPeerCN off
+   SSLProxyCheckPeerName off
+   SSLProxyCheckPeerExpire off
+
+   ProxyRequests Off
+   ProxyPreserveHost Off
+
+   RequestHeader set X-Forwarded-Port "444"
+   Header add Set-Cookie "ROUTEID=.%{BALANCER_WORKER_ROUTE}e; path=/" env=BALANCER_ROUTE_CHANGED
+   <Proxy balancer://{{ cluster_name }}>
+     BALANCER_HOST_PLACEHOLDER
+
+     ProxySet failontimeout=On lbmethod=byrequests stickysession=ROUTEID
+   </Proxy>
+
+   ProxyPass / balancer://{{ cluster_name }}/
+   ProxyPassReverse / balancer://{{ cluster_name }}/
+</VirtualHost>

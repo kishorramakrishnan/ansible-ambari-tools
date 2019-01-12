@@ -1,0 +1,147 @@
+---
+- name: install pexpect
+  pip:
+    name: pexpect
+  become: yes
+
+- name: simple debug
+  shell: ls /var/lib/ambari-server/resources/scripts
+  become_user: root
+  delegate_to: "{{ ambari_host }}"
+  register: scripts
+
+- name: simple deug step2
+  debug:
+    var: scripts.stdout
+
+- name: read yml
+  shell: 'cat /etc/unbound/conf.d/00-cluster.conf | grep \.local-data-ptr | sed "s/\"/ /g" | cut -d ":" -f2- | cut -d " " -f 4'
+  register: local_hosts
+  become: yes
+  become_user: root
+
+- name: get all_hosts
+  set_fact:
+    all_hosts: "{{ local_hosts.stdout_lines | list }}"
+
+- name: get loadbalancer host name
+  shell: "hostname -f"
+  register: loadbalancer_host
+
+- name : debug
+  debug :
+    var: all_hosts
+    var: loadbalancer_host.stdout
+
+- name: Fetch Spnego keytabs from all hosts
+  fetch:
+    src: /etc/security/keytabs/spnego.service.keytab
+    flat: yes
+    dest: "/tmp/{{ item }}.keytab"
+  become: yes
+  become_user: root
+  delegate_to: "{{ item }}"
+  with_items: "{{ all_hosts }}"
+
+- name: Merge keytabs to one super keytab
+  run_once: yes
+  delegate_to: localhost
+  expect:
+    command: ktutil
+    responses:
+      ktutil:
+        - "read_kt /tmp/{{ item }}.keytab"
+        - "write_kt /etc/security/keytabs/ranger.ha.keytab"
+        - "quit"
+  with_items: "{{ all_hosts }}"
+
+- name: copy super keytab to all hosts
+  become: yes
+  become_user: root
+  copy:
+    src: /etc/security/keytabs/ranger.ha.keytab
+    dest: /etc/security/keytabs/ranger.ha.keytab
+    owner: ranger
+    mode: 550
+    group: hadoop
+  delegate_to: "{{ item }}"
+  with_items: "{{ all_hosts }}"
+
+- name: set all configs for Ranger HA modfication
+  set_fact:
+    ranger_protocol: http
+    ranger_port: 6080
+    ranger_loadbalancer: "{{ loadbalancer_host.stdout }}"
+    ambari_port: 8080
+    ambari_protocol : http
+
+- name: set Ranger url as loadbalancer url
+  set_fact:
+    ranger_url: "{{ ranger_protocol }}://{{ ranger_loadbalancer }}:{{ ranger_port }}"
+
+- name: set all properties for ranger HA properties
+  set_fact:
+    ranger_props:
+      - config_type: ranger-admin-site
+        property_key: ranger.ha.spnego.kerberos.keytab
+        property_value: /etc/security/keytabs/ranger.ha.keytab
+
+      - config_type: ranger-admin-site
+        property_key: ranger.externalurl
+        property_value: "{{ ranger_url }}"
+
+      - config_type: admin-properties
+        property_key: policymgr_external_url
+        property_value: "{{ ranger_url }}"
+
+      - config_type: ranger-hdfs-security
+        property_key: ranger.plugin.hdfs.policy.rest.url
+        property_value: "{{ ranger_url }}"
+
+      - config_type: ranger-yarn-security
+        property_key: ranger.plugin.yarn.policy.rest.url
+        property_value: "{{ ranger_url }}"
+
+      - config_type: ranger-hbase-security
+        property_key: ranger.plugin.hbase.policy.rest.url
+        property_value: "{{ ranger_url }}"
+
+      - config_type: ranger-hive-security
+        property_key: ranger.plugin.hive.policy.rest.url
+        property_value: "{{ ranger_url }}"
+
+      - config_type: ranger-storm-security
+        property_key: ranger.plugin.storm.policy.rest.url
+        property_value: "{{ ranger_url }}"
+
+      - config_type: ranger-atlas-security
+        property_key: ranger.plugin.atlas.policy.rest.url
+        property_value: "{{ ranger_url }}"
+
+      - config_type: ranger-kafka-security
+        property_key: ranger.plugin.kafka.policy.rest.url
+        property_value: "{{ ranger_url }}"
+
+      - config_type: ranger-knox-security
+        property_key: ranger.plugin.knox.policy.rest.url
+        property_value: "{{ ranger_url }}"
+
+- name: update ranger HA keytab properties
+  shell: >
+    /var/lib/ambari-server/resources/scripts/configs.py --unsafe true
+    --action set --host localhost --port "{{ ambari_port }}"
+    --protocol "{{ ambari_protocol }}" --cluster "{{ cluster_name }}"
+    --config-type "{{ item.config_type }}"
+    --key "{{ item.property_key }}"
+    --value "{{ item.property_value }}"
+  with_items: "{{ ranger_props }}"
+  delegate_to: "{{ ambari_host }}"
+  become: yes
+  become_user: root
+
+- name: Restart stale configs
+  debug:
+    msg: "Restarting stale config services"
+  notify:
+    - restart stale
+  changed_when: true

@@ -1,0 +1,67 @@
+---
+- name: simple debug
+  debug: var=ranger_protocol
+
+- name : read yml
+  shell: 'cat /etc/unbound/conf.d/00-cluster.conf | grep \.local-data-ptr | sed "s/\"/ /g" | cut -d ":" -f2- | cut -d " " -f 4'
+  register: local_hosts
+  become: yes
+  become_user: root
+
+- name: set_fact
+  set_fact:
+    all_hosts: "{{ local_hosts.stdout_lines | list }}"
+
+- name: dynamic hosts
+  set_fact:
+    ranger_host_{{ item.0 }} : "{{ item.1 }}"
+  with_indexed_items: "{{ all_hosts }}"
+
+- name: simple debug
+  debug: var=all_hosts
+
+- name: Install apache packages
+  yum:
+    name: "{{ webserver_service }}"
+    state: present
+  sudo: yes
+  become: yes
+  become_user: root
+
+- name: Creates sites-available directory
+  file:
+    path: /etc/{{ webserver_service }}/sites-available
+    state: directory
+    mode: 0777
+  sudo: yes
+  become: yes
+  become_user: root
+
+- name: Creates sites-enabled directory
+  file:
+    path: /etc/{{ webserver_service }}/sites-enabled
+    state: directory
+    mode: 0777
+  become: yes
+  become_user: root
+
+- name: create virtual host file
+  template: src="ranger_loadbalancer.conf.j2" dest="/etc/{{ webserver_service }}/sites-available/{{ domain }}.conf"
+  sudo: yes
+  become: yes
+  become_user: root
+
+- name: create symlinks to enabled virtual hosts
+  command: sudo ln -s /etc/{{ webserver_service }}/sites-available/{{ domain }}.conf /etc/{{ webserver_service }}/sites-enabled/{{ domain }}.conf
+  become: yes
+  become_user: root
+
+- name: Append conf in httpd.conf file
+  sudo: yes
+  become: yes
+  become_user: root
+  lineinfile:
+    path: /etc/{{ webserver_service }}/conf/{{ webserver_service }}.conf
+    line: IncludeOptional sites-enabled/*.conf
+  notify:
+    - restart httpd

@@ -1,0 +1,47 @@
+---
+- name: restart stale
+  uri:
+    url: https://{{ ambari_host }}/ambari/api/v1/clusters/{{ cluster_name }}/requests
+    method: POST
+    force_basic_auth: yes
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    body: "{{ lookup('template', 'restart_stale.json.j2') }}"
+    status_code: 200
+    validate_certs: no
+    return_content: yes
+    headers:
+       X-Requested-By: ambari
+       Content-Type: text/plain
+    status_code: 201,202
+    validate_certs: no
+    body_format: json
+  become: yes
+  become_user: root
+  register: ambari_restart_request
+  changed_when: ambari_restart_request.content
+  listen: restart stale
+
+
+- name: wait stale component restart
+  delegate_to: localhost
+  run_once: true
+  uri:
+    url: "https://{{ ambari_host }}/ambari/api/v1/clusters/{{ cluster_name }}/requests/{{ ambari_restart_request.json['Requests']['id'] }}"
+    timeout: '{{ ambari_http_timeout }}'
+    method: GET
+    force_basic_auth: yes
+    user: '{{ ambari_user }}'
+    password: '{{ ambari_password }}'
+    return_content: yes
+    headers:
+      X-Requested-By: ambari
+      Content-Type: text/plain
+    validate_certs: no
+    status_code: 200
+  register: ambari_restart_response
+  delay: '{{ ambari_http_delay }}'
+  retries: '{{ ambari_http_retries }}'
+  until: ambari_restart_response.json['Requests']['request_status'] == 'COMPLETED'
+  when: ambari_restart_request.content
+  listen: restart stale
