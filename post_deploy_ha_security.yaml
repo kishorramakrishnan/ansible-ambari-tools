@@ -1,5 +1,5 @@
 ---
-- hosts: ambari
+- hosts: localhost
   roles:
     - { name: ranger_ha_security, when: install_ranger == 'true' }
     - { name: oozie_ha_security, when: install_oozie == 'true' }
