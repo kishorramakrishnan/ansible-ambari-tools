@@ -24,7 +24,6 @@
   yum:
     name: "{{ webserver_service }}"
     state: present
-  sudo: yes
   become: yes
   become_user: root
 
@@ -33,7 +32,6 @@
     path: /etc/{{ webserver_service }}/sites-available
     state: directory
     mode: 0777
-  sudo: yes
   become: yes
   become_user: root
 
@@ -47,7 +45,6 @@
 
 - name: create virtual host file
   template: src="ranger_loadbalancer.conf.j2" dest="/etc/{{ webserver_service }}/sites-available/{{ domain }}.conf"
-  sudo: yes
   become: yes
   become_user: root
 
@@ -57,7 +54,6 @@
   become_user: root
 
 - name: Append conf in httpd.conf file
-  sudo: yes
   become: yes
   become_user: root
   lineinfile:
