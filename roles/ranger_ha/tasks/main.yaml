@@ -1,4 +1,8 @@
 ---
+- set_fact:
+    ansible_python_default_interpreter: "{{ ansible_python_interpreter }}"
+    ansible_python_interpreter:  "/usr/bin/python"
+
 - name: simple debug
   debug: var=ranger_protocol
 
