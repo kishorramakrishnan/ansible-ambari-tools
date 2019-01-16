@@ -21,7 +21,7 @@
   debug: var=all_hosts
 
 - name: Install apache packages
-  yum:
+  dnf:
     name: "{{ webserver_service }}"
     state: present
   become: yes
