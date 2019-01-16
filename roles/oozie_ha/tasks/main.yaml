@@ -21,7 +21,7 @@
   debug: var=all_hosts
 
 - name: Install apache packages
-  dnf:
+  package:
     name: "{{ webserver_service }}"
     state: present
   become: yes
