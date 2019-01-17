@@ -1,0 +1,16 @@
+hdfs_config_type: hdfs-site
+hdfs_config_props:
+  monitor.ssl.keyStore:
+    value: "{{ certs_dir }}/{{ certs_jks_file }}"
+  monitor.ssl.keyStoreType:
+    value: JKS
+  monitor.ssl.keyStorePassword:
+    value: "{{ certs_jks_store_password }}"
+  monitor.ssl.trustStore:
+    value: "{{ certs_dir }}/{{ certs_jks_file }}"
+  monitor.ssl.trustStorePassword:
+    value: "{{ certs_jks_store_password }}"
+  monitor.ssl.trustStoreType:
+    value: JKS
+  rpc.sasl.qop:
+    value: auth-conf
