@@ -48,7 +48,7 @@
   become_user: root
 
 - name: create virtual host file
-  template: src="ranger_loadbalancer.conf.j2" dest="/etc/{{ webserver_service }}/sites-available/{{ domain }}.conf"
+  template: src="knox_loadbalancer.conf.j2" dest="/etc/{{ webserver_service }}/sites-available/{{ domain }}.conf"
   become: yes
   become_user: root
 
