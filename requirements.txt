@@ -1,3 +1,3 @@
-ansible==2.6.1
+ansible==2.7.6
 python-ambariclient==0.6.0
 lxml==4.2.5
