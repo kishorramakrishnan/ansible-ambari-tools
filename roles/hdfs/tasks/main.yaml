@@ -5,9 +5,16 @@
   vars:
     component_prefix: hdfs
 
-- name: Invoke Ambari config role, to save configs for hdfs
+- name: Invoke Ambari config role, to save configs for hdfs-site
   import_role:
     name: ambari_configure_service
   vars:
     ambari_component_section_name: "{{ hdfs_config_type }}"
     ambari_component_props: "{{ hdfs_config_props }}"
+
+- name: Invoke Ambari config role, to save configs for hdfs core-site
+  import_role:
+    name: ambari_configure_service
+  vars:
+    ambari_component_section_name: "{{ hdfs_core_config_type }}"
+    ambari_component_props: "{{ hdfs_core_config_props }}"

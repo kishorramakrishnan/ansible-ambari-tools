@@ -1,0 +1,14 @@
+hbase_site_config_type : hbase-site
+hbase_site_config_props:
+  hbase.rest.ssl.enabled:
+    value: "true"
+  hbase.rest.ssl.keystore.keypassword:
+    value: "{{ certs_jks_store_password }}"
+  hbase.rest.ssl.keystore.password:
+    value: "{{ certs_jks_store_password }}"
+  hbase.rest.ssl.keystore.store:
+    value: "{{ certs_dir }}/{{ certs_jks_file }}"
+  hbase.ssl.enabled:
+    value: "true"
+  hbase.rpc.protection:
+    value: "privacy"

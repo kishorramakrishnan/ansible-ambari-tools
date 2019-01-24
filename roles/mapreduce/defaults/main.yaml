@@ -1,0 +1,6 @@
+mapreduce2_mapred_site_config_type : mapred-site
+mapreduce2_mapred_site_config_props:
+  mapreduce.jobhistory.webapp.https.address:
+    value: "{{ ambari_component_configs['mapred-site']['mapreduce.jobhistory.webapp.address']| string | replace('http','https')"
+  mapreduce.jobhistory.http.policy:
+    value: "HTTPS_ONLY"

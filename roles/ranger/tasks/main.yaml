@@ -1,0 +1,6 @@
+---
+- name: Invoke wire encryption for ranger
+  import_role:
+    name: certs
+  vars:
+    component_prefix: ranger

@@ -1,0 +1,20 @@
+---
+- name: Invoke wire encryption for zookeeper
+  import_role:
+    name: certs
+  vars:
+    component_prefix: zookeeper
+
+- name: Invoke Ambari config role, to save configs for zookeeper zoo.cfg
+  import_role:
+    name: ambari_configure_service
+  vars:
+    ambari_component_section_name: "{{ zookeeper_zoo.cfg_config_type }}"
+    ambari_component_props: "{{ zookeeper_zoo.cfg_config_props }}"
+
+- name: Invoke Ambari config role, to save configs for zookeeper zookeeper-env
+  import_role:
+    name: ambari_configure_service
+  vars:
+    ambari_component_section_name: "{{ zookeeper_env_config_type }}"
+    ambari_component_props: "{{ zookeeper_env_config_props }}"

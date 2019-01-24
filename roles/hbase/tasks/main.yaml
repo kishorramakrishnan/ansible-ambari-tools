@@ -1,0 +1,13 @@
+---
+- name: Invoke wire encryption for hbase
+  import_role:
+    name: certs
+  vars:
+    component_prefix: hbase
+
+- name: Invoke Ambari config role, to save configs for hbase hbase-site
+  import_role:
+    name: ambari_configure_service
+  vars:
+    ambari_component_section_name: "{{ hbase_site_config_type }}"
+    ambari_component_props: "{{ hbase_site_config_props }}"

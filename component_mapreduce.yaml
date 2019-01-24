@@ -1,0 +1,5 @@
+---
+- hosts: HISTORYSERVER
+  roles:
+    - { name: mapreduce, when: install_mapreduce == 'true' }
+  run_once: true

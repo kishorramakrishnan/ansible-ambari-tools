@@ -1,0 +1,46 @@
+yarn_ssl_client_config_type : ssl-client
+yarn_ssl_client_config_props:
+  ssl.client.truststore.location:
+    value: "{{ certs_dir }}/{{ certs_jks_file }}"
+  ssl.client.truststore.password:
+    value: "{{ certs_jks_key_password }}"
+  ssl.client.truststore.type:
+    value: "jks"
+  ssl.client.keystore.location:
+    value: "{{ certs_dir }}/{{ certs_jks_file }}"
+  ssl.client.keystore.password:
+    value: "{{ certs_jks_key_password }}"
+  ssl.client.keystore.type:
+    value: "jks"
+
+yarn_ssl_server_config_type : ssl-server
+yarn_ssl_server_config_props:
+  ssl.server.truststore.location:
+    value: "{{ certs_dir }}/{{ certs_jks_file }}"
+  ssl.server.truststore.password:
+    value: "{{ certs_jks_key_password }}"
+  ssl.server.truststore.type:
+    value: "jks"
+  ssl.server.keystore.location:
+    value: "{{ certs_dir }}/{{ certs_jks_file }}"
+  ssl.server.keystore.password:
+    value: "{{ certs_jks_key_password }}"
+  ssl.server.keystore.type:
+    value: "jks"
+  ssl.server.keystore.keypassword:
+    value: "{{ certs_jks_key_password }}"
+
+yarn_site_config_type : yarn-site
+yarn_site_config_props:
+  yarn.http.policy:
+    value: "HTTPS_ONLY"
+  yarn.log.server.url:
+    value: "{{ ambari_component_configs['yarn-site']['yarn.log.server.url']| string | replace('http','https') }}"
+  yarn.timeline-service.webapp.https.address:
+    value: "{{ ambari_component_configs['yarn-site']['yarn.timeline-service.webapp.address']| string | replace('http','https') | replace('8188','8190') }}"
+  yarn.log.server.web-service.url:
+    value: "{{ ambari_component_configs['yarn-site']['yarn.log.server.web-service.url']| string | replace('http','https') | replace('8188','8190') }}"
+  yarn.resourcemanager.webapp.https.address:
+    value: "{{ ambari_component_configs['yarn-site']['yarn.resourcemanager.webapp.address']| string | replace('http','https') | replace('8088','8090') }}"
+  yarn.nodemanager.webapp.https.address:
+    value: "0.0.0.0:54321"

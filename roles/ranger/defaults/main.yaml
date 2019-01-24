@@ -1,0 +1,30 @@
+xasecure_admin-properties_config_type : admin-properties
+xasecure_admin-properties_config_props: admin-properties
+policymgr_external_url:
+  value: "{{ ambari_component_configs['admin-properties']['policymgr_external_url']| string | replace('http','https') | replace('6080','6182') }} "
+
+xasecure_ranger-admin-site_config_type : ranger-admin-site
+xasecure_ranger-admin-site_config_props: ranger-admin-site
+ranger.service.http.enabled:
+  value: "false"
+ranger.service.https.attrib.ssl.enabled:
+  value: "true"
+ranger.externalurl:
+  value: "{{ ambari_component_configs['ranger-admin-site']['ranger.externalurl']| string | replace('http','https') | replace('6080','6182') }} "
+ranger.https.attrib.keystore.file:
+  value: "{{ certs_dir }}/{{ certs_jks_file }}"
+ranger.service.https.attrib.keystore.pass:
+  value: "{{ certs_jks_store_password }}"
+ranger.service.https.attrib.keystore.keyalias:
+  value: "rangeradmin"
+ranger.service.https.attrib.clientAuth:
+  value: "want"
+ranger.service.https.attrib.keystore.file:
+  value: "{{ certs_dir }}/{{ certs_jks_file }}"
+ranger.service.https.attrib.client.auth:
+  value: "want"
+ranger.truststore.file:
+  value: "{{ certs_dir }}/{{ certs_jks_file }}"
+ranger.truststore.password:
+  value: "{{ certs_jks_store_password }}"
+

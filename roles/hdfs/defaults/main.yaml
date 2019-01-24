@@ -1,16 +1,33 @@
 hdfs_config_type: hdfs-site
 hdfs_config_props:
-  monitor.ssl.keyStore:
-    value: "{{ certs_dir }}/{{ certs_jks_file }}"
-  monitor.ssl.keyStoreType:
-    value: JKS
-  monitor.ssl.keyStorePassword:
-    value: "{{ certs_jks_store_password }}"
-  monitor.ssl.trustStore:
-    value: "{{ certs_dir }}/{{ certs_jks_file }}"
-  monitor.ssl.trustStorePassword:
-    value: "{{ certs_jks_store_password }}"
-  monitor.ssl.trustStoreType:
-    value: JKS
-  rpc.sasl.qop:
-    value: auth-conf
+  dfs.encrypt.data.transfer:
+    value: "true"
+  dfs.encrypt.data.transfer.algorithm:
+    value: "3des"
+  dfs.http.policy:
+    value: "HTTPS_ONLY"
+  dfs.datanode.https.address:
+    value: "0.0.0.0:50475"
+  dfs.namenode.https-address:
+    value: "{{ ambari_component_configs['hdfs-site']['dfs.namenode.http-address']|string | replace('http','https') | replace('20070','50470') }} "
+  dfs.namenode.secondary.https-address:
+    value: "0.0.0.0:50091"
+  dfs.client.https.need-auth:
+    value: "false"
+  dfs.https.enable:
+    value: "true"
+
+hdfs_core_config_type: core-site
+hdfs_core_config_props:
+  hadoop.rpc.protection:
+    value: "privacy"
+  hadoop.ssl.require.client.cert:
+    value: "false"
+  hadoop.ssl.hostname.verifier:
+    value: "DEFAULT"
+  hadoop.ssl.keystores.factory.class:
+    value: "org.apache.hadoop.security.ssl.FileBasedKeyStoresFactory"
+  hadoop.ssl.server.conf:
+    value: "ssl-server.xml"
+  hadoop.ssl.client.conf:
+    value: "ssl-client.xml"

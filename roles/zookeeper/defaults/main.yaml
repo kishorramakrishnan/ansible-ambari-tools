@@ -1,0 +1,4 @@
+zookeeper_zoo.cfg_config_type : zoo.cfg
+zookeeper_zoo.cfg_config_props:
+  secureClientPort:
+    value: "2281"

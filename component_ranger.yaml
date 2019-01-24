@@ -1,0 +1,5 @@
+---
+- hosts: RANGER_ADMIN
+  roles:
+    - { name: ranger, when: install_ranger == 'true' }
+  run_once: true

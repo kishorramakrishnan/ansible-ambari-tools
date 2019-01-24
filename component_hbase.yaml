@@ -1,0 +1,5 @@
+---
+- hosts: HBASE_MASTER
+  roles:
+    - { name: hbase, when: install_hbase == 'true' }
+  run_once: true

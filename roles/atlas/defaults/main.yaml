@@ -1,0 +1,12 @@
+atlas_application-properties_config_type : application-properties
+atlas_application-properties_config_props:
+  atlas.enableTLS:
+    value: "true"
+  cert.stores.credential.provider.path:
+    value: "jceks://file/etc/atlas/conf/passwdFile.jceks"
+  keystore.file:
+    value: "{{ certs_dir }}/{{ certs_jks_file }}"
+  truststore.file:
+    value: "{{ certs_dir }}/{{ certs_jks_file }}"
+  atlas.rest.address:
+    value: "{{ ambari_component_configs['application-properties']['atlas.rest.address']|string | replace('http','https') | replace('21000','21443') }} "
