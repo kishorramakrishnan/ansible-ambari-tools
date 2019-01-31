@@ -4,10 +4,3 @@
     name: certs
   vars:
     component_prefix: kafka
-
-- name: Invoke Ambari config role, to save configs for Kafka
-  import_role:
-    name: ambari_configure_service
-  vars:
-    ambari_component_section_name: "{{ kafka_config_type }}"
-    ambari_component_props: "{{ kafka_config_props }}"

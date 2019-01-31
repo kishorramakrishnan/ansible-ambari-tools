@@ -4,10 +4,3 @@
     name: certs
   vars:
     component_prefix: atlas
-
-- name: Invoke Ambari config role, to save configs for atlas application-properties
-  import_role:
-    name: ambari_configure_service
-  vars:
-    ambari_component_section_name: "{{ atlas_application_properties_config_type }}"
-    ambari_component_props: "{{ atlas_application_properties_config_props }}"

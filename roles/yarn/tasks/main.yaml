@@ -4,24 +4,3 @@
     name: certs
   vars:
     component_prefix: yarn
-
-- name: Invoke Ambari config role, to save configs for yarn ssl-server
-  import_role:
-    name: ambari_configure_service
-  vars:
-    ambari_component_section_name: "{{ yarn_ssl_server_config_type }}"
-    ambari_component_props: "{{ yarn_ssl_server_config_props }}"
-
-- name: Invoke Ambari config role, to save configs for yarn ssl-client
-  import_role:
-    name: ambari_configure_service
-  vars:
-    ambari_component_section_name: "{{ yarn_ssl_client_config_type }}"
-    ambari_component_props: "{{ yarn_ssl_client_config_props }}"
-
-- name: Invoke Ambari config role, to save configs for yarn yarn-site
-  import_role:
-    name: ambari_configure_service
-  vars:
-    ambari_component_section_name: "{{ yarn_site_config_type }}"
-    ambari_component_props: "{{ yarn_site_config_props }}"
