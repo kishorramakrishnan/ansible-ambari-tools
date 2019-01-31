@@ -4,7 +4,7 @@
     ansible_python_interpreter:  "/usr/bin/python"
 
 - name: simple debug
-  debug: var=ranger_protocol
+  debug: var=knox_protocol
 
 - name : read yml
   shell: 'cat /etc/unbound/conf.d/00-cluster.conf | grep \.local-data-ptr | sed "s/\"/ /g" | cut -d ":" -f2- | cut -d " " -f 4'
@@ -18,7 +18,7 @@
 
 - name: dynamic hosts
   set_fact:
-    ranger_host_{{ item.0 }} : "{{ item.1 }}"
+    knox_host_{{ item.0 }} : "{{ item.1 }}"
   with_indexed_items: "{{ all_hosts }}"
 
 - name: simple debug
@@ -27,6 +27,13 @@
 - name: Install apache packages
   package:
     name: "{{ webserver_service }}"
+    state: present
+  become: yes
+  become_user: root
+
+- name: Install apache module packages
+  package:
+    name: openssl-devel, gcc-c++, glibc-headers, glibc-devel, glibc, kernel-headers, openldap-devel
     state: present
   become: yes
   become_user: root

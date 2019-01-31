@@ -1,4 +1,7 @@
-ranger_protocol: http
-ranger_port: 6080
+knox_protocol: https
+knox_port: 8443
 domain: knoxexample.com
 webserver_service: httpd
+knox_ca_cert_path: /usr/local/apache2/ssl/server.crt
+knox_ca_cert_kay_path: /usr/local/apache2/ssl/server.key
+
