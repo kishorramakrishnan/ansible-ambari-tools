@@ -45,3 +45,44 @@
   until: ambari_restart_response.json['Requests']['request_status'] == 'COMPLETED'
   when: ambari_restart_request.content
   listen: restart stale
+
+- name: Request a STOP for Knox
+  delegate_to: localhost
+  run_once: true
+  uri:
+    url: '{{ ambari_url }}/api/v1/clusters/{{ ambari_cluster_name }}/services/KNOX'
+    body: "{{ lookup('template', 'start_stop.json.j2', template_vars=dict(service_name='KNOX', service_state='INSTALLED' ) }}"
+    timeout: '{{ ambari_http_timeout }}'
+    method: PUT
+    force_basic_auth: yes
+    user: '{{ ambari_user }}'
+    password: '{{ ambari_password }}'
+    return_content: yes
+    headers:
+       X-Requested-By: ambari
+       Content-Type: text/plain
+    status_code: 201,202
+    validate_certs: no
+    body_format: json
+  listen: stop knox
+
+
+- name: Request a START for Knox
+  delegate_to: localhost
+  run_once: true
+  uri:
+    url: '{{ ambari_url }}/api/v1/clusters/{{ ambari_cluster_name }}/services/KNOX'
+    body: "{{ lookup('template', 'start_stop.json.j2', template_vars=dict(service_name='KNOX', service_state='STARTED' ) }}"
+    timeout: '{{ ambari_http_timeout }}'
+    method: PUT
+    force_basic_auth: yes
+    user: '{{ ambari_user }}'
+    password: '{{ ambari_password }}'
+    return_content: yes
+    headers:
+       X-Requested-By: ambari
+       Content-Type: text/plain
+    status_code: 201,202
+    validate_certs: no
+    body_format: json
+  listen: start knox

@@ -1,0 +1,25 @@
+---
+- hosts: localhost
+  tasks:
+    - name: Security setup for Ranger HA
+      include_role:
+        name: ranger_ha_security
+
+- hosts: localhost
+  tasks:
+    - name: Security setup for Oozie HA
+      include_role:
+        name: oozie_ha_security
+
+- hosts: RANGER_ADMIN
+  tasks:
+    - name: Simple Debug to find hosts
+      debug:
+        msg: "Hosts of ranger admin are {{ groups['RANGER_ADMIN'] }}"
+
+
+- hosts: KNOX_GATEWAY
+  tasks:
+    - name: Security setup for Knox HA
+      include_role:
+        name: knox_ha_security

@@ -1,0 +1,7 @@
+---
+- hosts: localhost
+  roles:
+    - { name: ranger_ha, when: install_ranger == true }
+    - { name: oozie_ha, when: install_oozie == true }
+    - { name: knox_ha, when: install_knox == true }
+  run_once: true

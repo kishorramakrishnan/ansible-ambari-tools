@@ -28,120 +28,91 @@
   shell: "hostname -f"
   register: loadbalancer_host
 
-- name : debug
+- name : STOP KNOX
   debug :
     var: all_hosts
-    var: loadbalancer_host.stdout
+  notify:
+    - stop knox
+  changed_when: true
 
-- name: Fetch Spnego keytabs from all hosts
+- name: Fetch Topology files from KNox gateway host
   fetch:
-    src: /etc/security/keytabs/spnego.service.keytab
+    src: "/usr/hdp/current/knox-server/conf/topologies/{{ item }}"
     flat: yes
-    dest: "/tmp/{{ item }}.keytab"
+    dest: "/knox_temp/{{ item }}"
   become: yes
   become_user: root
-  delegate_to: "{{ item }}"
-  with_items: "{{ all_hosts }}"
+  delegate_to: KNOX_GATEWAY[0]
+  with_items:
+    - admin.xml
+    - knoxssl.xml
+    - manager.xml
+    - sandbox.xml
 
-- name: Merge keytabs to one super keytab
-  run_once: yes
-  delegate_to: localhost
-  expect:
-    command: ktutil
-    responses:
-      ktutil:
-        - "read_kt /tmp/{{ item }}.keytab"
-        - "write_kt /etc/security/keytabs/ranger.ha.keytab"
-        - "quit"
-  with_items: "{{ all_hosts }}"
+- name: Fetch keystore files from Knox gateway host
+  fetch:
+    src: "/usr/hdp/current/knox-server/data/security/keystores/{{ item }}"
+    flat: yes
+    dest: "/knox_temp/{{ item }}"
+  become: yes
+  become_user: root
+  delegate_to: KNOX_GATEWAY[0]
+  with_items:
+    - admin-credentials.jceks
+    - default-credentials.jceks
+    - knoxsso-credentials.jceks
+    - manager-credentials.jceks
+    - sandbox-credentials.jceks
 
-- name: copy super keytab to all hosts
+- name: copy default.xml to sandbox.xml
   become: yes
   become_user: root
   copy:
-    src: /etc/security/keytabs/ranger.ha.keytab
-    dest: /etc/security/keytabs/ranger.ha.keytab
+    src: /knox_temp/default.xml
+    dest: /etc/knox/conf/topologies/sandbox.xml
     owner: ranger
     mode: 550
     group: hadoop
-  delegate_to: "{{ item }}"
-  with_items: "{{ all_hosts }}"
+  delegate_to: KNOX_GATEWAY[0]
 
-- name: set all configs for Ranger HA modfication
-  set_fact:
-    ranger_protocol: http
-    ranger_port: 6080
-    ranger_loadbalancer: "{{ loadbalancer_host.stdout }}"
-    ambari_port: 8080
-    ambari_protocol : http
-
-- name: set Ranger url as loadbalancer url
-  set_fact:
-    ranger_url: "{{ ranger_protocol }}://{{ ranger_loadbalancer }}:{{ ranger_port }}"
-
-- name: set all properties for ranger HA properties
-  set_fact:
-    ranger_props:
-      - config_type: ranger-admin-site
-        property_key: ranger.ha.spnego.kerberos.keytab
-        property_value: /etc/security/keytabs/ranger.ha.keytab
-
-      - config_type: ranger-admin-site
-        property_key: ranger.externalurl
-        property_value: "{{ ranger_url }}"
-
-      - config_type: admin-properties
-        property_key: policymgr_external_url
-        property_value: "{{ ranger_url }}"
-
-      - config_type: ranger-hdfs-security
-        property_key: ranger.plugin.hdfs.policy.rest.url
-        property_value: "{{ ranger_url }}"
-
-      - config_type: ranger-yarn-security
-        property_key: ranger.plugin.yarn.policy.rest.url
-        property_value: "{{ ranger_url }}"
-
-      - config_type: ranger-hbase-security
-        property_key: ranger.plugin.hbase.policy.rest.url
-        property_value: "{{ ranger_url }}"
-
-      - config_type: ranger-hive-security
-        property_key: ranger.plugin.hive.policy.rest.url
-        property_value: "{{ ranger_url }}"
-
-      - config_type: ranger-storm-security
-        property_key: ranger.plugin.storm.policy.rest.url
-        property_value: "{{ ranger_url }}"
-
-      - config_type: ranger-atlas-security
-        property_key: ranger.plugin.atlas.policy.rest.url
-        property_value: "{{ ranger_url }}"
-
-      - config_type: ranger-kafka-security
-        property_key: ranger.plugin.kafka.policy.rest.url
-        property_value: "{{ ranger_url }}"
-
-      - config_type: ranger-knox-security
-        property_key: ranger.plugin.knox.policy.rest.url
-        property_value: "{{ ranger_url }}"
-
-- name: update ranger HA keytab properties
-  shell: >
-    /var/lib/ambari-server/resources/scripts/configs.py --unsafe true
-    --action set --host localhost --port "{{ ambari_port }}"
-    --protocol "{{ ambari_protocol }}" --cluster "{{ cluster_name }}"
-    --config-type "{{ item.config_type }}"
-    --key "{{ item.property_key }}"
-    --value "{{ item.property_value }}"
-  with_items: "{{ ranger_props }}"
-  delegate_to: "{{ ambari_host }}"
+- name: copy all topologies to all other knox_gateway hosts
   become: yes
   become_user: root
+  copy:
+    src: "/knox_temp/{{ item }}"
+    dest: "/etc/knox/conf/topologies/{{ item }}"
+    owner: ranger
+    mode: 550
+    group: hadoop
+  delegate_to: KNOX_GATEWAY[1]
+  with_items:
+    - admin.xml
+    - knoxssl.xml
+    - manager.xml
+    - sandbox.xml
 
-- name: Restart stale configs
-  debug:
-    msg: "Restarting stale config services"
+- name: copy all keystore files to all other knox_gateway hosts
+  become: yes
+  become_user: root
+  copy:
+    src: "/knox_temp/{{ item }}"
+    dest: "/usr/hdp/current/knox-server/data/security/keystores/{{ item }}"
+    owner: ranger
+    mode: 550
+    group: hadoop
+  delegate_to: KNOX_GATEWAY[1]
+  with_items:
+    - admin-credentials.jceks
+    - default-credentials.jceks
+    - knoxsso-credentials.jceks
+    - manager-credentials.jceks
+    - sandbox-credentials.jceks
+
+
+
+- name : START KNOX
+  debug :
+    var: all_hosts
   notify:
-    - restart stale
+    - start knox
   changed_when: true
