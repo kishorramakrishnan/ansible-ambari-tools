@@ -1,4 +1,4 @@
 ranger_protocol: http
 ranger_port: 6080
-domain: example.com
+domain: rangerexample.com
 webserver_service: httpd
