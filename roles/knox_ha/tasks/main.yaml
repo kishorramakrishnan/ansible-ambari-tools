@@ -33,10 +33,29 @@
 
 - name: Install apache module packages
   package:
-    name: openssl-devel, gcc-c++, glibc-headers, glibc-devel, glibc, kernel-headers, openldap-devel
+    name: openssl-devel, gcc-c++, glibc-headers, glibc-devel, glibc, kernel-headers, openldap-devel, mod_ssl
     state: present
   become: yes
   become_user: root
+
+- name: create root CA certificate (local)
+  command: >
+    openssl req
+      -new
+      -x509
+      -sha256
+      -newkey "rsa:2048"
+      -subj "{{ certs_ca_subject }}"
+      -keyout "{{ certs_ca_key }}"
+      -out "{{ certs_ca_cert }}"
+      -days "{{ certs_ca_days }}"
+      -passin "pass:{{ certs_ca_password }}"
+      -passout "pass:{{ certs_ca_password }}"
+  args:
+    chdir: "{{ knox_ca_cert_dir }}"
+    creates: "{{ knox_ca_cert_path }}"
+  run_once: true
+  when: certs_use_local_ca
 
 - name: Creates sites-available directory
   file:
