@@ -1,0 +1,5 @@
+---
+- hosts: NODEMANAGER
+  roles:
+    - { name: yarn, when: install_yarn == 'true' }
+  run_once: true
