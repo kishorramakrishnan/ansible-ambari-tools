@@ -47,6 +47,14 @@
     group: root
     mode: 0755
 
+- name: Replace the prt conflicts in the httpd ssl conf
+  replace:
+    dest: /etc/httpd/conf.d/ssl.conf
+    regexp: '443'
+    replace: '8043'
+  become: yes
+  become_user: root
+
 - name: create root CA certificate (local)
   command: >
     openssl req
@@ -63,6 +71,17 @@
   args:
     chdir: "{{ knox_ca_cert_dir }}"
     creates: "{{ knox_ca_cert_path }}"
+  run_once: true
+  when: certs_use_local_ca
+
+- name: Removing the passphrase from the private key
+  command: >
+    openssl rsa
+      -in "{{ certs_ca_key }}"
+      -out "{{ certs_ca_key }}"
+      -passin "pass:{{ certs_ca_password }}"
+  args:
+    chdir: "{{ knox_ca_cert_dir }}"
   run_once: true
   when: certs_use_local_ca
 

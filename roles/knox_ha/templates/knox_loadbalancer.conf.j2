@@ -14,7 +14,7 @@ Listen 444
    SSLProxyEngine On
    SSLCertificateFile {{ knox_ca_cert_path }}
    SSLCertificateKeyFile {{ knox_ca_cert_key_path }}
-   SSLCACertificatePath {{ knox_ca_cert_path }}
+   SSLCACertificatePath {{ knox_ca_cert_dir }}
    SSLProxyVerify none
    SSLProxyCheckPeerCN off
    SSLProxyCheckPeerName off
