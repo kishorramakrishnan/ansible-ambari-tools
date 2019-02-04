@@ -38,6 +38,15 @@
   become: yes
   become_user: root
 
+- name: create directory for Knox certificates
+  become: true
+  file:
+    path: "{{ knox_ca_cert_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
 - name: create root CA certificate (local)
   command: >
     openssl req
