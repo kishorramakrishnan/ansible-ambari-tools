@@ -10,7 +10,7 @@
     all_hosts: "{{ local_hosts.stdout_lines | list }}"
 
 - name: Invoke wire encryption for hbase
-  import_role:
+  include_role:
     name: certs
   vars:
     component_prefix: hbase
