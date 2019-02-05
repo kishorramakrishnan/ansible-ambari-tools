@@ -1,0 +1,12 @@
+---
+- hosts: KNOX_GATEWAY
+  tasks:
+    - name: Simple Debug to find hosts
+      debug:
+        msg: "Hosts of ranger admin are {{ groups['KNOX_GATEWAY'] }}"
+
+- hosts: localhost
+  tasks:
+    - name: Security setup for Knox HA
+      include_role:
+        name: debug_test
