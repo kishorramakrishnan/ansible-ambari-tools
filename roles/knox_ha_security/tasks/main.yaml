@@ -39,55 +39,50 @@
   fetch:
     src: "/usr/hdp/current/knox-server/conf/topologies/{{ item }}"
     flat: yes
-    dest: "/knox_temp/{{ item }}"
+    dest: "/knox_temp/"
+    remote_src: yes
   become: yes
   become_user: root
-  delegate_to: KNOX_GATEWAY[0]
+  run_once: true
   with_items:
     - admin.xml
-    - knoxssl.xml
+    - knoxsso.xml
     - manager.xml
-    - sandbox.xml
+    - default.xml
 
 - name: Fetch keystore files from Knox gateway host
   fetch:
     src: "/usr/hdp/current/knox-server/data/security/keystores/{{ item }}"
     flat: yes
-    dest: "/knox_temp/{{ item }}"
+    dest: "/knox_temp/"
   become: yes
   become_user: root
-  delegate_to: KNOX_GATEWAY[0]
+  run_once: true
   with_items:
     - admin-credentials.jceks
     - default-credentials.jceks
     - knoxsso-credentials.jceks
     - manager-credentials.jceks
-    - sandbox-credentials.jceks
 
 - name: copy default.xml to sandbox.xml
   become: yes
+  run_once: true
   become_user: root
-  copy:
-    src: /knox_temp/default.xml
-    dest: /etc/knox/conf/topologies/sandbox.xml
-    owner: ranger
-    mode: 550
-    group: hadoop
-  delegate_to: KNOX_GATEWAY[0]
+  delegate_to: localhost
+  shell: 'cp /knox_temp/default.xml /knox_temp/sandbox.xml; chmod 550 /knox_temp/sandbox.xml; chgrp hadoop /knox_temp/sandbox.xml'
 
 - name: copy all topologies to all other knox_gateway hosts
   become: yes
   become_user: root
   copy:
     src: "/knox_temp/{{ item }}"
-    dest: "/etc/knox/conf/topologies/{{ item }}"
+    dest: "/etc/knox/conf/topologies/"
     owner: ranger
     mode: 550
     group: hadoop
-  delegate_to: KNOX_GATEWAY[1]
   with_items:
     - admin.xml
-    - knoxssl.xml
+    - knoxsso.xml
     - manager.xml
     - sandbox.xml
 
@@ -96,17 +91,15 @@
   become_user: root
   copy:
     src: "/knox_temp/{{ item }}"
-    dest: "/usr/hdp/current/knox-server/data/security/keystores/{{ item }}"
+    dest: "/usr/hdp/current/knox-server/data/security/keystores/"
     owner: ranger
     mode: 550
     group: hadoop
-  delegate_to: KNOX_GATEWAY[1]
   with_items:
     - admin-credentials.jceks
     - default-credentials.jceks
     - knoxsso-credentials.jceks
     - manager-credentials.jceks
-    - sandbox-credentials.jceks
 
 
 
