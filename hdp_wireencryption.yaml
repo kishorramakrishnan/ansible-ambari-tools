@@ -1,40 +1,40 @@
 ---
 - hosts: all
 
-- import_playbook: component_hdfs.yaml
+- import_playbook: component_hdfs_hdp_we.yaml
   tags:
     - hdfs
     - hdp
 
-- import_playbook: component_yarn.yaml
+- import_playbook: component_yarn_hdp_we.yaml
   tags:
     - yarn
     - hdp
 
-- import_playbook: component_zookeeper.yaml
+- import_playbook: component_zookeeper_hdp_we.yaml
   tags:
     - zookeeper
     - hdp
 
-- import_playbook: component_mapreduce.yaml
+- import_playbook: component_mapreduce_hdp_we.yaml
   tags:
     - mapreduce
 
-- import_playbook: component_hbase.yaml
+- import_playbook: component_hbase_hdp_we.yaml
   tags:
     - hbase
     - hdp
 
-- import_playbook: component_kafka.yaml
+- import_playbook: component_kafka_hdp_we.yaml
   tags:
     - kafka
     - hdp
 
-- import_playbook: component_ranger.yaml
+- import_playbook: component_ranger_hdp_we.yaml
   tags:
     - ranger
     - hdp
 
-- import_playbook: component_atlas.yaml
+- import_playbook: component_atlas_hdp_we.yaml
   tags:
     - atlas
