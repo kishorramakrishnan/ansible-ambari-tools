@@ -3,4 +3,3 @@
   roles:
     - { name: atlas, when: install_atlas == 'true' }
   run_once: true
-  delegate_to:
