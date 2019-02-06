@@ -1,0 +1,14 @@
+certs_use_local_ca: true
+certs_ca_days: 365
+certs_ca_sign_days: 365
+certs_ca_subject: "/C=US/ST=CA/L=Santa Clara/O=Hortonworks/OU=Engineering/CN={{ certs_ca_alias }}"
+certs_ca_alias: "Hortonworks Internal Root CA"
+certs_ca_cert: server.crt
+certs_ca_key: server.key
+knox_protocol: https
+knox_port: 8443
+domain: knoxexample.com
+webserver_service: httpd
+knox_ca_cert_dir: /usr/local/apache2/ssl/
+knox_ca_cert_path: /usr/local/apache2/ssl/server.crt
+knox_ca_cert_key_path: /usr/local/apache2/ssl/server.key

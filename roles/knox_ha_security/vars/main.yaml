@@ -1,0 +1,4 @@
+knox_protocol: https
+knox_port: 8443
+domain: knoxexample.com
+webserver_service: httpd

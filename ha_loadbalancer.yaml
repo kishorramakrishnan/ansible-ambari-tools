@@ -1,0 +1,6 @@
+---
+- hosts: all
+
+- import_playbook: component_hdp_ha.yaml
+  tags:
+    - hdp

@@ -1,0 +1,4 @@
+oozie_protocol: http
+oozie_port: 11000
+domain: example.com
+webserver_service: httpd
