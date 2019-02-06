@@ -1,5 +1,5 @@
 ---
-- hosts: all
+- hosts: localhost
   roles:
     - { name: zookeeper, when: install_zookeeper == 'true' }
   run_once: true
