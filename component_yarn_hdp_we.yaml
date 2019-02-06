@@ -1,5 +1,5 @@
 ---
-- hosts: localhost
+- hosts: all
   roles:
     - { name: yarn, when: install_yarn == 'true' }
   run_once: true

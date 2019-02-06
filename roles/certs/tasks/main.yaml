@@ -91,11 +91,11 @@
 - name: pull openssl conf files needed for signing with SAN extension
   become: true
   fetch:
-    src: "{{ certs_dir}}/san_{{ inventory_hostname }}.cnf"
-    dest: "{{ certs_local_dir }}/{{ component_prefix }}/san_{{ inventory_hostname }}.cnf"
+    src: "{{ certs_dir}}/san_{{ ansible_fqdn }}.cnf"
+    dest: "{{ certs_local_dir }}/{{ component_prefix }}/san_{{ ansible_fqdn }}.cnf"
     flat: yes
   args:
-    creates: "{{ certs_local_dir }}/{{ component_prefix }}/san_{{ inventory_hostname }}.cnf"
+    creates: "{{ certs_local_dir }}/{{ component_prefix }}/san_{{ ansible_fqdn }}.cnf"
 
 - name: sign certificate requests (local)
   delegate_to: localhost
