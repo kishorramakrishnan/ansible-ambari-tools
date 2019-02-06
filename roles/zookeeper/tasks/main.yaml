@@ -16,5 +16,3 @@
     component_prefix: zookeeper
   become: yes
   become_user: root
-  delegate_to: "{{ item }}"
-  with_items: "{{ all_hosts }}"

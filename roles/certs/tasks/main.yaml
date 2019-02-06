@@ -82,7 +82,7 @@
 - name: pull certificate requests
   become: true
   fetch:
-    src: "{{ certs_dir}}/{{ certs_jks_req }}"
+    src: "{{ certs_dir }}/{{ certs_jks_req }}"
     dest: "{{ certs_local_dir }}/{{ component_prefix }}/{{ inventory_hostname }}_{{ certs_jks_req }}"
     flat: yes
   args:
@@ -91,11 +91,11 @@
 - name: pull openssl conf files needed for signing with SAN extension
   become: true
   fetch:
-    src: "{{ certs_dir}}/san_{{ ansible_fqdn }}.cnf"
-    dest: "{{ certs_local_dir }}/{{ component_prefix }}/san_{{ ansible_fqdn }}.cnf"
+    src: "{{ certs_dir }}/san_{{ inventory_hostname }}.cnf"
+    dest: "{{ certs_local_dir }}/{{ component_prefix }}/san_{{ inventory_hostname }}.cnf"
     flat: yes
   args:
-    creates: "{{ certs_local_dir }}/{{ component_prefix }}/san_{{ ansible_fqdn }}.cnf"
+    creates: "{{ certs_local_dir }}/{{ component_prefix }}/san_{{ inventory_hostname }}.cnf"
 
 - name: sign certificate requests (local)
   delegate_to: localhost
