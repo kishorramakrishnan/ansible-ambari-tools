@@ -1,0 +1,12 @@
+{
+  "RequestInfo": {
+    "command": "RESTART",
+    "context": "Restart all required services",
+    "operation_level": "host_component"
+  },
+  "Requests/resource_filters": [
+    {
+      "hosts_predicate": "HostRoles/stale_configs=true&HostRoles/cluster_name={{ cluster_name }}"
+    }
+  ]
+}

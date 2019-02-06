@@ -1,0 +1,5 @@
+oozie_protocol: http
+oozie_port: 11000
+domain: oozieexample.com
+webserver_service: httpd
+unbound_conf_file: /etc/unbound/conf.d/00-cluster.conf

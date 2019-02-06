@@ -1,0 +1,52 @@
+---
+- set_fact:
+    ansible_python_default_interpreter: "{{ ansible_python_interpreter }}"
+    ansible_python_interpreter:  "/usr/bin/python"
+
+- name: Read all hosts and set it with index
+  set_fact:
+    ranger_host_{{ item.0 }} : "{{ item.1 }}"
+  with_indexed_items: "{{ unbound_conf_file | get_all_hosts }}"
+
+- name: Install apache packages
+  package:
+    name: "{{ webserver_service }}"
+    state: present
+  become: yes
+  become_user: root
+
+- name: Creates sites-available directory
+  file:
+    path: /etc/{{ webserver_service }}/sites-available
+    state: directory
+    mode: 0777
+  become: yes
+  become_user: root
+
+- name: Creates sites-enabled directory
+  file:
+    path: /etc/{{ webserver_service }}/sites-enabled
+    state: directory
+    mode: 0777
+  become: yes
+  become_user: root
+
+- name: create virtual host file
+  template: src="ranger_loadbalancer.conf.j2" dest="/etc/{{ webserver_service }}/sites-available/{{ domain }}.conf"
+  become: yes
+  become_user: root
+
+- name: create symlinks to enabled virtual hosts
+  file:
+    src: /etc/{{ webserver_service }}/sites-available/{{ domain }}.conf
+    dest: /etc/{{ webserver_service }}/sites-enabled/{{ domain }}.conf
+    state: link
+
+- name: Append conf in httpd.conf file
+  become: yes
+  become_user: root
+  lineinfile:
+    path: /etc/{{ webserver_service }}/conf/{{ webserver_service }}.conf
+    line: IncludeOptional sites-enabled/*.conf
+  notify:
+    - restart {{ webserver_service }}

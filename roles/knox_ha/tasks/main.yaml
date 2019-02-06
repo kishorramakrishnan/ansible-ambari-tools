@@ -1,0 +1,115 @@
+---
+- set_fact:
+    ansible_python_default_interpreter: "{{ ansible_python_interpreter }}"
+    ansible_python_interpreter:  "/usr/bin/python"
+
+- name: Read all hosts and set it with index
+  set_fact:
+    knox_host_{{ item.0 }} : "{{ item.1 }}"
+  with_indexed_items: "{{ unbound_conf_file | get_all_hosts }}"
+
+- name: Install apache server packages
+  package:
+    name: "{{ webserver_service }}"
+    state: present
+  become: yes
+  become_user: root
+
+- name: Install apache module packages
+  package:
+    name: {{ item }}
+    state: present
+  become: yes
+  become_user: root
+  with_items:
+    - openssl-devel
+    - gcc-c++
+    - glibc-headers
+    - glibc-devel
+    - glibc
+    - kernel-headers
+    - openldap-devel
+    - mod_ssl
+
+- name: create directory for Knox certificates
+  become: true
+  file:
+    path: "{{ knox_ca_cert_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Replace the port conflicts in the httpd ssl conf
+  replace:
+    dest: /etc/httpd/conf.d/ssl.conf
+    regexp: '443'
+    replace: '8043'
+  become: yes
+  become_user: root
+
+- name: create root CA certificate (local)
+  command: >
+    openssl req
+      -new
+      -x509
+      -sha256
+      -newkey "rsa:2048"
+      -subj "{{ certs_ca_subject }}"
+      -keyout "{{ certs_ca_key }}"
+      -out "{{ certs_ca_cert }}"
+      -days "{{ certs_ca_days }}"
+      -passin "pass:{{ certs_ca_password }}"
+      -passout "pass:{{ certs_ca_password }}"
+  args:
+    chdir: "{{ knox_ca_cert_dir }}"
+    creates: "{{ knox_ca_cert_path }}"
+  run_once: true
+  when: certs_use_local_ca
+
+- name: Removing the passphrase from the private key
+  command: >
+    openssl rsa
+      -in "{{ certs_ca_key }}"
+      -out "{{ certs_ca_key }}"
+      -passin "pass:{{ certs_ca_password }}"
+  args:
+    chdir: "{{ knox_ca_cert_dir }}"
+  run_once: true
+  when: certs_use_local_ca
+
+- name: Creates sites-available directory
+  file:
+    path: /etc/{{ webserver_service }}/sites-available
+    state: directory
+    mode: 0777
+  become: yes
+  become_user: root
+
+- name: Creates sites-enabled directory
+  file:
+    path: /etc/{{ webserver_service }}/sites-enabled
+    state: directory
+    mode: 0777
+  become: yes
+  become_user: root
+
+- name: create virtual host file
+  template: src="knox_loadbalancer.conf.j2" dest="/etc/{{ webserver_service }}/sites-available/{{ domain }}.conf"
+  become: yes
+  become_user: root
+
+- name: create symlinks to enabled virtual hosts
+  file:
+    src: /etc/{{ webserver_service }}/sites-available/{{ domain }}.conf
+    dest: /etc/{{ webserver_service }}/sites-enabled/{{ domain }}.conf
+    state: link
+
+- name: Append conf in httpd.conf file
+  become: yes
+  become_user: root
+  lineinfile:
+    path: /etc/{{ webserver_service }}/conf/{{ webserver_service }}.conf
+    line: IncludeOptional sites-enabled/*.conf
+  notify:
+    - restart {{ webserver_service }}
