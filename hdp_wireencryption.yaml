@@ -1,6 +1,8 @@
 ---
 - hosts: all
 
+- import_playbook: hdp_certs_common.yaml
+
 - import_playbook: component_hdfs_hdp_we.yaml
   tags:
     - hdfs

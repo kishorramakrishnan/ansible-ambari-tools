@@ -1,5 +1,5 @@
 ---
 - hosts: RESOURCEMANAGER
   roles:
-    - { name: yarn, when: install_yarn == 'true' }
+    - { name: yarn, when: install_yarn == true }
   run_once: true

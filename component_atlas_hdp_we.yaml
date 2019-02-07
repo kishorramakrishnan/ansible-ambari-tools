@@ -1,5 +1,5 @@
 ---
 - hosts: ATLAS_SERVER
   roles:
-    - { name: atlas, when: install_atlas == 'true' }
+    - { name: atlas, when: install_atlas == true }
   run_once: true
