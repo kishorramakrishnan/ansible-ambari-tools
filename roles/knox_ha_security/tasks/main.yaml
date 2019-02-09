@@ -77,8 +77,6 @@
   copy:
     src: "/knox_temp/{{ item }}"
     dest: "/etc/knox/conf/topologies/"
-    owner: ranger
-    mode: 550
     group: hadoop
   with_items:
     - admin.xml
@@ -92,8 +90,6 @@
   copy:
     src: "/knox_temp/{{ item }}"
     dest: "/usr/hdp/current/knox-server/data/security/keystores/"
-    owner: ranger
-    mode: 550
     group: hadoop
   with_items:
     - admin-credentials.jceks
