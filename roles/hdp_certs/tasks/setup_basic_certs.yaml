@@ -36,7 +36,7 @@
       -passin "pass:{{ certs_ca_password }}"
       -passout "pass:{{ certs_ca_password }}"
   args:
-    chdir: "{{ certs_local_dir }}"
+    chdir: "{{ server_certs_dir }}"
     creates: "{{ certs_ca_cert }}"
   run_once: true
   when: certs_use_local_ca
@@ -55,7 +55,7 @@
       -keysize "{{ certs_jks_keysize }}"
       -ext "SAN=dns:{{ ansible_fqdn }}"
   args:
-    chdir: "{{ certs_dir }}"
+    chdir: "{{ server_certs_dir }}"
     creates: "{{ certs_jks_file }}"
 
 - name: export the public key to certificate file
@@ -75,7 +75,7 @@
   become: true
   command: >
     keytool -import
-      -norpompt
+      -nopompt
       -alias "{{ ansible_fqdn }}"
       -file "{{ cert_pub_key }}"
       -keystore "{{ truststore_file }}"
@@ -99,7 +99,7 @@
 - name: change ownership of keystore file
   become: true
   file:
-    path: "{{ certs_dir }}/{{ certs_jks_file }}"
+    path: "{{ server_certs_dir }}/{{ certs_jks_file }}"
     owner: root
     group: root
     mode: 0644

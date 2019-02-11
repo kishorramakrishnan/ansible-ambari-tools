@@ -11,7 +11,7 @@
 
 - name: Invoke wire encryption for yarn
   include_role:
-    name: hdp_certs
+    name: certs
   vars:
     component_prefix: yarn
   become: yes

@@ -19,3 +19,7 @@
          - ATLAS_SERVER
          - HBASE_MASTER
      with_items: "{{ all_hosts }}"
+
+- hosts: RANGER_ADMIN
+  roles:
+      - { name: hdp_certs }

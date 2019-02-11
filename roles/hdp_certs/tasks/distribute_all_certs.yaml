@@ -1,12 +1,64 @@
+- name: copy certificate file
+  copy:
+    src: {{ server_certs_dir }}/{{ cert_pub_key }}
+    dest: {{ server_certs_dir }}/{{ cert_pub_key }}_{{ ansible_fqdn }}
+
 - name: import the certificate to truststore
   become: true
   command: >
     keytool -import
-      -norpompt
+      -nopompt
       -alias "{{ ansible_fqdn }}"
-      -file "{{ cert_pub_key }}"
-      -keystore "{{ truststore_file }}"
+      -file "{{ cert_pub_key }}_{{ ansible_fqdn }}"
+      -keystore "{{ ca_cert_path }}"
       -storepass "{{ certs_jks_store_password }}"
   args:
     chdir: "{{ server_certs_dir }}"
     creates: "{{ cert_pub_key }}"
+
+- name: copy all JKS file
+  copy:
+    src: {{ client_certs_dir }}/{{ all_jks_file }}
+    dest: {{ client_certs_dir }}/{{ all_jks_file }}
+
+- name: set directory permissions
+  file:
+    dest: {{ item }}
+    owner: root
+    group: hadoop
+    recursive: yes
+    mode: 755
+  loop:
+    - {{ client_certs_dir }}
+    - {{ server_certs_dir }}
+
+- name: set file permissions
+  file:
+    dest: {{ item }}
+    owner: root
+    group: hadoop
+    mode: 440
+  loop:
+    - {{ client_certs_dir }}/{{ all_jks_file }}
+    - {{ server_certs_dir }}/{{ cert_pub_key }}
+    - {{ server_certs_dir }}/{{ truststore_file }}
+    - {{ server_certs_dir }}/{{ certs_jks_file }}
+
+- name: Create hadoop conf directory if missing
+  file:
+    path: "/etc/hadoop/conf"
+    state: directory
+  become: yes
+  become_user: root
+
+- name: copy hdfs conf file to all hosts
+  template: src="{{ item.src }}" dest="{{ item.dest }}"
+  become: yes
+  become_user: root
+  loop:
+    - src: default_ssl_client_on_hosts.xml
+      dest: /etc/hadoop/conf/ssl-client.xml
+    - src: default_ssl_server_on_hosts.xml
+      dest: /etc/hadoop/conf/ssl-server.xml
+
+

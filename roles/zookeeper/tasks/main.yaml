@@ -11,7 +11,7 @@
 
 - name: Invoke wire encryption for zookeeper
   include_role:
-    name: hdp_certs
+    name: certs
   vars:
     component_prefix: zookeeper
   become: yes
