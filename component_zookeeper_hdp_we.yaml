@@ -2,4 +2,3 @@
 - hosts: ZOOKEEPER_SERVER
   roles:
     - { name: zookeeper, when: install_zookeeper == true }
-  run_once: true

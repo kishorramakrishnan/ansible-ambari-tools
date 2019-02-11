@@ -1,7 +1,7 @@
 ---
 - name: Invoke wire encryption for hdfs
   include_role:
-    name: certs
+    name: hdp_certs
   vars:
     component_prefix: hdfs
   become: yes

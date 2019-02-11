@@ -1,0 +1,105 @@
+
+- name: create directory for certificates (local)
+  delegate_to: localhost
+  file:
+    path: "{{ item.file }}"
+    state: directory
+  run_once: true
+  loop:
+    - file: {{ server_certs_dir }}
+    - file: {{ client_certs_dir }}
+
+- name: create directory for certificates
+  become: true
+  file:
+    path: "{{ item.file }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  loop:
+    - file: {{ server_certs_dir }}
+    - file: {{ client_certs_dir }}
+
+- name: create root CA certificate (local)
+  delegate_to: localhost
+  command: >
+    openssl req
+      -new
+      -x509
+      -sha256
+      -newkey "rsa:2048"
+      -subj "{{ certs_ca_subject }}"
+      -keyout "{{ certs_ca_key }}"
+      -out "{{ certs_ca_cert }}"
+      -days "{{ certs_ca_days }}"
+      -passin "pass:{{ certs_ca_password }}"
+      -passout "pass:{{ certs_ca_password }}"
+  args:
+    chdir: "{{ certs_local_dir }}"
+    creates: "{{ certs_ca_cert }}"
+  run_once: true
+  when: certs_use_local_ca
+
+- name: create keystore file
+  become: true
+  command: >
+    keytool -genkeypair
+      -alias "{{ ansible_fqdn }}"
+      -dname "CN={{ ansible_fqdn }},{{ certs_jks_subject_suffix }}"
+      -keystore "{{ certs_jks_file }}"
+      -keypass "{{ certs_jks_key_password }}"
+      -storepass "{{ certs_jks_store_password }}"
+      -keyalg RSA
+      -sigalg SHA256withRSA
+      -keysize "{{ certs_jks_keysize }}"
+      -ext "SAN=dns:{{ ansible_fqdn }}"
+  args:
+    chdir: "{{ certs_dir }}"
+    creates: "{{ certs_jks_file }}"
+
+- name: export the public key to certificate file
+  become: true
+  command: >
+    keytool -export
+      -alias "{{ ansible_fqdn }}"
+      -keystore "{{ certs_jks_file }}"
+      -keypass "{{ certs_jks_key_password }}"
+      -storepass "{{ certs_jks_store_password }}"
+      -rfc -file "{{ cert_pub_key }}"
+  args:
+    chdir: "{{ server_certs_dir }}"
+    creates: "{{ cert_pub_key }}"
+
+- name: import the certificate to truststore
+  become: true
+  command: >
+    keytool -import
+      -norpompt
+      -alias "{{ ansible_fqdn }}"
+      -file "{{ cert_pub_key }}"
+      -keystore "{{ truststore_file }}"
+      -storepass "{{ certs_jks_store_password }}"
+  args:
+    chdir: "{{ server_certs_dir }}"
+    creates: "{{ cert_pub_key }}"
+
+- name: import the certificate to cacertstore
+  become: true
+  command: >
+    keytool -import
+      -norpompt
+      -alias "{{ ansible_fqdn }}"
+      -file "{{ cert_pub_key }}"
+      -keystore "{{ ca_cert_path }}"
+      -storepass "{{ certs_jks_store_password }}"
+  args:
+    chdir: "{{ server_certs_dir }}"
+
+- name: change ownership of keystore file
+  become: true
+  file:
+    path: "{{ certs_dir }}/{{ certs_jks_file }}"
+    owner: root
+    group: root
+    mode: 0644

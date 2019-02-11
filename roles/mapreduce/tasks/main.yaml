@@ -11,7 +11,7 @@
 
 - name: Invoke wire encryption for mapreduce
   include_role:
-    name: certs
+    name: hdp_certs
   vars:
     component_prefix: mapreduce
   become: yes

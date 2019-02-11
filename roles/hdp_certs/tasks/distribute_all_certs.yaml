@@ -1,0 +1,12 @@
+- name: import the certificate to truststore
+  become: true
+  command: >
+    keytool -import
+      -norpompt
+      -alias "{{ ansible_fqdn }}"
+      -file "{{ cert_pub_key }}"
+      -keystore "{{ truststore_file }}"
+      -storepass "{{ certs_jks_store_password }}"
+  args:
+    chdir: "{{ server_certs_dir }}"
+    creates: "{{ cert_pub_key }}"

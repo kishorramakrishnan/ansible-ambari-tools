@@ -4,3 +4,16 @@ L: Santa Clara
 ST: CA
 C: US
 certs_dir: /etc/wire_encryption/atlas
+server_storepass_password: serverStorePassPassword
+client_truststore_password: clientTrustStorePassword
+server_keypass_password: serverKeyPassPassword
+server_key_location: /etc/security/serverKeys/
+keystore_file: keystore.jks
+client_key_location: /etc/security/clientKeys/
+ALL_JKS: all.jks
+passwdFileLocation: jceks://file/etc/atlas/conf/passwdFile.jceks
+passwdFileLocationActualPath: /etc/atlas/conf/passwdFile.jceks
+passwdCrcFileLocation: /etc/atlas/conf/.passwdFile.jceks.crc
+RES_SCRIPT_PATH: passwd_gen
+local_script_path: os.path.join(CONF_DIR, atlas/passwd_gen)
+REMOTE_SCRIPT_PATH: /etc/atlas/conf/passwd_gen"

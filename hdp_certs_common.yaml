@@ -1,15 +1,9 @@
 ---
 - hosts: localhost
   tasks:
-   - name: read yml
-     shell: 'cat /etc/unbound/conf.d/00-cluster.conf | grep \.local-data-ptr | sed "s/\"/ /g" | cut -d ":" -f2- | cut -d " " -f 4'
-     register: local_hosts
-     become: yes
-     become_user: root
-
    - name: get all_hosts
      set_fact:
-       all_hosts: "{{ local_hosts.stdout_lines | list }}"
+       all_hosts: "{{ /etc/unbound/conf.d/00-cluster.conf | get_all_hosts }}"
 
    - name: set all hosts
      add_host:

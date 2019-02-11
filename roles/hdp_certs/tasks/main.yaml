@@ -1,0 +1,153 @@
+- name: Get ambari java home
+  set_fact:
+    java_home: "'/etc/ambari-server/conf/ambari.properties' | get_ambari_java_home"
+    ca_cert_path: {{ java_home }}/jre/lib/security/cacerts
+    all_hoss: "{{/etc/unbound/conf.d/00-cluster.conf | get_all_hosts }}"
+
+- name: Include common certs
+  tasks:
+    - include setup_basic_certs.yaml
+  delegate_to: {{ item }}
+  with_items: {{ all_hosts }}
+
+- name: Import certs in all hosts common certs
+  tasks:
+    - include distribute_all_certs.yaml
+  delegate_to: {{ item }}
+  with_nested:
+    - {{ all_hosts }}
+    - {{ all_hosts }}
+  when: item != {{ ansible_fqdn }}
+
+- name: import the certificate to truststore
+  become: true
+  command: >
+    keytool -import
+      -norpompt
+      -alias "{{ ansible_fqdn }}"
+      -file "{{ server_certs_dir }}/{{ cert_pub_key }}"
+      -keystore "{{ all_jks_file }}"
+      -storepass "{{ certs_jks_store_password }}"
+  args:
+    chdir: "{{ client_certs_dir }}"
+    creates: "{{ all_jks_file }}"
+
+- name: copy all.jks to all hosts
+  become: true
+  delegate_to: {{ item }}
+  copy:
+    src: "{{ client_certs_dir }}/{{ all_jks_file }}"
+    dest: "{{ client_certs_dir }}/"
+  args:
+    chdir: "{{ client_certs_dir }}"
+    creates: "{{ all_jks_file }}"
+  with_items: {{ all_hosts }}
+  when: item != {{ ansible_fqdn }}
+
+- name: import the certificate to truststore
+  become: true
+  delegate_to: localhost
+  command: >
+    keytool -import
+      -norpompt
+      -alias "{{ ansible_fqdn }}"
+      -file "{{ server_certs_dir }}/{{ cert_pub_key }}"
+      -keystore "{{ all_jks_file }}"
+      -storepass "{{ certs_jks_store_password }}"
+  args:
+    chdir: "{{ client_certs_dir }}"
+    creates: "{{ all_jks_file }}"
+  with_items: {{ all_hosts }}
+    when: item != {{ ansible_fqdn }}
+
+- name: create certificate request
+  become: true
+  command: >
+    keytool -certreq
+      -alias "{{ ansible_fqdn }}"
+      -file "{{ certs_jks_req }}"
+      -keystore "{{ certs_jks_file }}"
+      -keypass "{{ certs_jks_key_password }}"
+      -storepass "{{ certs_jks_store_password }}"
+      -ext "SAN=dns:{{ ansible_fqdn }}"
+  args:
+    chdir: "{{ certs_dir }}"
+    creates: "{{ certs_jks_req }}"
+
+- name: create openssl config to include SAN (SubjectAlternativeNames)
+  become: true
+  template:
+    src: san.cnf.j2
+    dest: "{{ certs_dir }}/san_{{ ansible_fqdn }}.cnf"
+
+- name: pull certificate requests
+  become: true
+  fetch:
+    src: "{{ certs_dir }}/{{ certs_jks_req }}"
+    dest: "{{ certs_local_dir }}/{{ component_prefix }}/{{ inventory_hostname }}_{{ certs_jks_req }}"
+    flat: yes
+  args:
+    creates: "{{ certs_local_dir }}/{{ component_prefix }}/{{ inventory_hostname }}_{{ certs_jks_req }}"
+
+- name: pull openssl conf files needed for signing with SAN extension
+  become: true
+  fetch:
+    src: "{{ certs_dir }}/san_{{ inventory_hostname }}.cnf"
+    dest: "{{ certs_local_dir }}/{{ component_prefix }}/san_{{ inventory_hostname }}.cnf"
+    flat: yes
+  args:
+    creates: "{{ certs_local_dir }}/{{ component_prefix }}/san_{{ inventory_hostname }}.cnf"
+
+- name: sign certificate requests (local)
+  delegate_to: localhost
+  command: >
+    openssl x509
+      -req
+      -in "{{ component_prefix }}/{{ inventory_hostname }}_{{ certs_jks_req }}"
+      -out "{{ component_prefix }}/{{ inventory_hostname }}_{{ certs_jks_cert }}"
+      -days "{{ certs_ca_sign_days }}"
+      -CA "{{ certs_ca_cert }}"
+      -CAkey "{{ certs_ca_key }}"
+      -CAcreateserial
+      -passin "pass:{{ certs_ca_password }}"
+      -extensions v3_req
+      -extfile "{{ component_prefix }}/san_{{ inventory_hostname }}.cnf"
+  args:
+    chdir: "{{ certs_local_dir }}"
+    creates: "{{ component_prefix }}/{{ inventory_hostname }}_{{ certs_jks_cert }}"
+  when: certs_use_local_ca
+
+- name: sign certificate requests (external)
+  pause:
+    prompt: "Sign all *_{{ cert_jks_req }} files in {{ certs_dir }} directory"
+  when: not certs_use_local_ca
+
+- name: push certificates
+  become: true
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: 0644
+  loop:
+    - src: "{{ certs_local_dir }}/{{ component_prefix }}/{{ inventory_hostname }}_{{ certs_jks_cert }}"
+      dest: "{{ certs_dir}}/{{ certs_jks_cert }}"
+    - src: "{{ certs_local_dir }}/{{ certs_ca_cert }}"
+      dest: "{{ certs_dir }}/{{ certs_ca_cert }}"
+
+- name: import certificates
+  become: true
+  command: >
+    keytool -import
+      -keystore "{{ certs_dir }}/{{ certs_jks_file }}"
+      -alias "{{ item.alias }}"
+      -file "{{ certs_dir }}/{{ item.file }}"
+      -keypass "{{ certs_jks_key_password }}"
+      -storepass "{{ certs_jks_store_password }}"
+      -noprompt
+  loop:
+    - alias: "{{ certs_ca_alias }}"
+      file: "{{ certs_ca_cert }}"
+    - alias: "{{ ansible_fqdn }}"
+      file: "{{ certs_jks_cert }}"
+  loop_control:
+    label: "{{ item.alias }}"

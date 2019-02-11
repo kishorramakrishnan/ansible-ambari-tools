@@ -2,4 +2,3 @@
 - hosts: NAMENODE
   roles:
     - { name: hdfs, when: install_hdfs == true }
-  run_once: true

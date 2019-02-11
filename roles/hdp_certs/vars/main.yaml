@@ -1,0 +1,23 @@
+certs_use_local_ca: true
+
+server_certs_dir: /etc/security/serverKeys
+client_certs_dir: /etc/security/clientKeys
+certs_local_dir: ./certs
+
+certs_jks_file: keystore.jks
+truststore_file: truststore.jks
+all_jks_file: all.jks
+cert_pub_key: cert_pubkey
+certs_jks_req: certs.req
+certs_jks_cert: certs.crt
+certs_jks_keysize: 2048
+certs_jks_subject_suffix: "OU={{ OU }},O={{ O }},L={{ L }},ST={{ ST }},C={{ C }}"
+
+certs_ca_cert: ca.crt
+certs_ca_alias: "Hortonworks Internal Root CA"
+
+# These are only used when certs_use_local_ca is true
+certs_ca_key: ca.key
+certs_ca_days: 365
+certs_ca_sign_days: 365
+certs_ca_subject: "/C=US/ST=CA/L=Santa Clara/O=Hortonworks/OU=Engineering/CN={{ certs_ca_alias }}"
