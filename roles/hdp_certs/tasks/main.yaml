@@ -14,6 +14,7 @@
 
 - name: import the certificate to truststore
   become: true
+  become_user: root
   command: >
     keytool -import
       -noprompt
@@ -27,6 +28,7 @@
 
 - name: copy all.jks to all hosts
   become: true
+  become_user: root
   delegate_to: "{{ item }}"
   copy:
     src: "{{ client_certs_dir }}/{{ all_jks_file }}"
@@ -41,6 +43,7 @@
 
 - name: import the certificate to truststore
   become: true
+  become_user: root
   delegate_to: "{{ item }}"
   command: >
     keytool -import
