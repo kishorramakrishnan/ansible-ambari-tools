@@ -1,28 +1,25 @@
 - name: Get ambari java home
   set_fact:
-    java_home: "'/etc/ambari-server/conf/ambari.properties' | get_ambari_java_home"
-    ca_cert_path: {{ java_home }}/jre/lib/security/cacerts
-    all_hoss: "{{/etc/unbound/conf.d/00-cluster.conf | get_all_hosts }}"
+    java_home: '{{ "/etc/ambari-server/conf/ambari.properties" | get_ambari_java_home }}'
+    ca_cert_path: "{{ java_home }}/jre/lib/security/cacerts"
+    all_hosts: '{{ "/etc/unbound/conf.d/00-cluster.conf" | get_all_hosts }}'
 
 - name: Include common certs
-  tasks:
-    - include setup_basic_certs.yaml
-  delegate_to: {{ item }}
-  with_items: {{ all_hosts }}
+  include_tasks: setup_basic_certs.yaml
+  delegate_to: "{{ item }}"
+  with_items: "{{ all_hosts }}"
 
 - name: Import certs in all hosts common certs
-  tasks:
-    - include distribute_all_certs.yaml
-  delegate_to: {{ item }}
-  with_nested:
-    - {{ all_hosts }}
-  when: item != {{ ansible_fqdn }}
+  include_tasks: distribute_all_certs.yaml
+  delegate_to: "{{ item }}"
+  with_items: "{{ all_hosts }}"
+  when: item != "{{ ansible_fqdn }}"
 
 - name: import the certificate to truststore
   become: true
   command: >
     keytool -import
-      -norpompt
+      -noprompt
       -alias "{{ ansible_fqdn }}"
       -file "{{ server_certs_dir }}/{{ cert_pub_key }}"
       -keystore "{{ all_jks_file }}"
@@ -33,22 +30,22 @@
 
 - name: copy all.jks to all hosts
   become: true
-  delegate_to: {{ item }}
+  delegate_to: "{{ item }}"
   copy:
     src: "{{ client_certs_dir }}/{{ all_jks_file }}"
     dest: "{{ client_certs_dir }}/"
   args:
     chdir: "{{ client_certs_dir }}"
     creates: "{{ all_jks_file }}"
-  with_items: {{ all_hosts }}
-  when: item != {{ ansible_fqdn }}
+  with_items: "{{ all_hosts }}"
+  when: item != "{{ ansible_fqdn }}"
 
 - name: import the certificate to truststore
   become: true
-  delegate_to: localhost
+  delegate_to: "{{ item }}"
   command: >
     keytool -import
-      -norpompt
+      -noprompt
       -alias "{{ ansible_fqdn }}"
       -file "{{ server_certs_dir }}/{{ cert_pub_key }}"
       -keystore "{{ all_jks_file }}"
@@ -56,5 +53,5 @@
   args:
     chdir: "{{ client_certs_dir }}"
     creates: "{{ all_jks_file }}"
-  with_items: {{ all_hosts }}
-    when: item != {{ ansible_fqdn }}
+  with_items: "{{ all_hosts }}"
+  `when: item != "{{ ansible_fqdn }}"

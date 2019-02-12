@@ -3,7 +3,7 @@
   tasks:
    - name: get all_hosts
      set_fact:
-       all_hosts: "{{ /etc/unbound/conf.d/00-cluster.conf | get_all_hosts }}"
+       all_hosts: '{{ "/etc/unbound/conf.d/00-cluster.conf" | get_all_hosts }}'
 
    - name: set all hosts
      add_host:

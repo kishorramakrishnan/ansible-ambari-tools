@@ -7,7 +7,7 @@
   become: true
   command: >
     keytool -import
-      -nopompt
+      -noprompt
       -alias "{{ ansible_fqdn }}"
       -file "{{ cert_pub_key }}_{{ ansible_fqdn }}"
       -keystore "{{ ca_cert_path }}"
