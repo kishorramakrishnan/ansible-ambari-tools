@@ -1,10 +1,13 @@
 - name: copy certificate file
+  become: true
+  become_user: root
   copy:
     src: "{{ server_certs_dir }}/{{ cert_pub_key }}"
     dest: "{{ server_certs_dir }}/{{ cert_pub_key }}_{{ ansible_fqdn }}"
 
 - name: import the certificate to truststore
   become: true
+  become_user: root
   command: >
     keytool -import
       -noprompt
@@ -17,11 +20,15 @@
     creates: "{{ cert_pub_key }}"
 
 - name: copy all JKS file
+  become: true
+  become_user: root
   copy:
-    src: {{ client_certs_dir }}/{{ all_jks_file }}
-    dest: {{ client_certs_dir }}/{{ all_jks_file }}
+    src: "{{ client_certs_dir }}/{{ all_jks_file }}"
+    dest: "{{ client_certs_dir }}/{{ all_jks_file }}"
 
 - name: set directory permissions
+  become: true
+  become_user: root
   file:
     dest: "{{ item[0] }}"
     owner: root
@@ -35,16 +42,19 @@
   when: item[1] != "{{ ansible_fqdn }}"
 
 - name: set file permissions
+  become: true
+  become_user: root
   file:
-    dest: "{{ item[0] }}"
+    dest: "{{ item }}"
     owner: root
     group: hadoop
     mode: 440
-  delegate_to: "{{ item[1] }}"
-  with_nested:
-    - ["{{ client_certs_dir }}/{{ all_jks_file }}", "{{ server_certs_dir }}/{{ cert_pub_key }}", "{{ server_certs_dir }}/{{ truststore_file }}","{{ server_certs_dir }}/{{ certs_jks_file }}"]
-    - "{{ all_hosts }}"
-  when: item != "{{ ansible_fqdn }}"
+  delegate_to: "{{ item }}"
+  with_items:
+    - "{{ client_certs_dir }}/{{ all_jks_file }}"
+    - "{{ server_certs_dir }}/{{ cert_pub_key }}"
+    - "{{ server_certs_dir }}/{{ truststore_file }}"
+    - "{{ server_certs_dir }}/{{ certs_jks_file }}"
 
 - name: Create hadoop conf directory if missing
   file:
@@ -52,9 +62,6 @@
     state: directory
   become: yes
   become_user: root
-  delegate_to: "{{ item }}"
-  with_items: "{{ all_hosts }}"
-  when: item != "{{ ansible_fqdn }}"
 
 - name: copy hdfs conf file to all hosts
   template: src="{{ item.src }}" dest="{{ item.dest }}"
@@ -65,8 +72,4 @@
       dest: /etc/hadoop/conf/ssl-client.xml
     - src: default_ssl_server_on_hosts.xml
       dest: /etc/hadoop/conf/ssl-server.xml
-  delegate_to: "{{ item }}"
-  with_items: "{{ all_hosts }}"
-  when: item != "{{ ansible_fqdn }}"
-
 

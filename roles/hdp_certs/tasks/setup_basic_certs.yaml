@@ -1,15 +1,7 @@
 
-- name: create directory for certificates (local)
-  file:
-    path: "{{ item[0] }}"
-    state: directory
-  delegate_to: "{{ item[1] }}"
-  with_nested:
-    - [ "{{ server_certs_dir }}", "{{ client_certs_dir }}"]
-    - "{{ all_hosts }}"
-
 - name: create directory for certificates
   become: true
+  become_user: root
   file:
     path: "{{ item[0] }}"
     state: directory
@@ -18,9 +10,8 @@
     mode: 0755
   delegate_to: "{{ item[1] }}"
   with_nested:
-    - [ "{{ server_certs_dir }}", "{{ client_certs_dir }}"]
-    - "{{ all_hosts }}"
-
+    - "{{ server_certs_dir }}"
+    - "{{ client_certs_dir }}"
 
 - name: create root CA certificate (local)
   delegate_to: localhost
@@ -41,9 +32,12 @@
     creates: "{{ certs_ca_cert }}"
   run_once: true
   when: certs_use_local_ca
+  become: true
+  become_user: root
 
 - name: create keystore file
   become: true
+  become_user: root
   command: >
     keytool -genkeypair
       -alias "{{ ansible_fqdn }}"
@@ -52,17 +46,16 @@
       -keypass "{{ certs_jks_key_password }}"
       -storepass "{{ certs_jks_store_password }}"
       -keyalg RSA
-      -sigalg SHA256withRSA
       -keysize "{{ certs_jks_keysize }}"
       -ext "SAN=dns:{{ ansible_fqdn }}"
   args:
     chdir: "{{ server_certs_dir }}"
     creates: "{{ certs_jks_file }}"
-  delegate_to: "{{ item }}"
-  with_items: "{{ all_hosts }}"
+
 
 - name: export the public key to certificate file
   become: true
+  become_user: root
   command: >
     keytool -export
       -alias "{{ ansible_fqdn }}"
@@ -73,11 +66,10 @@
   args:
     chdir: "{{ server_certs_dir }}"
     creates: "{{ cert_pub_key }}"
-  delegate_to: "{{ item }}"
-  with_items: "{{ all_hosts }}"
 
 - name: import the certificate to truststore
   become: true
+  become_user: root
   command: >
     keytool -import
       -noprompt
@@ -88,11 +80,10 @@
   args:
     chdir: "{{ server_certs_dir }}"
     creates: "{{ cert_pub_key }}"
-  delegate_to: "{{ item }}"
-  with_items: "{{ all_hosts }}"
 
 - name: import the certificate to cacertstore
   become: true
+  become_user: root
   command: >
     keytool -import
       -noprompt
@@ -102,15 +93,12 @@
       -storepass "{{ certs_jks_store_password }}"
   args:
     chdir: "{{ server_certs_dir }}"
-  delegate_to: "{{ item }}"
-  with_items: "{{ all_hosts }}"
 
 - name: change ownership of keystore file
   become: true
+  become_user: root
   file:
     path: "{{ server_certs_dir }}/{{ certs_jks_file }}"
     owner: root
     group: root
     mode: 0644
-  delegate_to: "{{ item }}"
-  with_items: "{{ all_hosts }}"
