@@ -1,6 +1,9 @@
 - name: Get ambari java home
   set_fact:
     java_home: '{{ "/etc/ambari-server/conf/ambari.properties" | get_ambari_java_home }}'
+
+- name: set CA cert path and all hosts
+  set_fact:
     ca_cert_path: "{{ java_home }}/jre/lib/security/cacerts"
     all_hosts: '{{ "/etc/unbound/conf.d/00-cluster.conf" | get_all_hosts }}'
 
@@ -54,4 +57,4 @@
     chdir: "{{ client_certs_dir }}"
     creates: "{{ all_jks_file }}"
   with_items: "{{ all_hosts }}"
-  `when: item != "{{ ansible_fqdn }}"
+  when: item != "{{ ansible_fqdn }}"
