@@ -3,13 +3,12 @@
   become: true
   become_user: root
   file:
-    path: "{{ item[0] }}"
+    path: "{{ item }}"
     state: directory
     owner: root
     group: hadoop
     mode: 0755
-  delegate_to: "{{ item[1] }}"
-  with_nested:
+  with_items:
     - "{{ server_certs_dir }}"
     - "{{ client_certs_dir }}"
 
