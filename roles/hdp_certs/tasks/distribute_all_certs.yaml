@@ -31,6 +31,9 @@
   loop:
     - "{{ client_certs_dir }}"
     - "{{ server_certs_dir }}"
+  delegate_to: "{{ item }}"
+  with_items: "{{ all_hosts }}"
+  when: item != "{{ ansible_fqdn }}"
 
 - name: set file permissions
   file:
@@ -43,6 +46,9 @@
     - "{{ server_certs_dir }}/{{ cert_pub_key }}"
     - "{{ server_certs_dir }}/{{ truststore_file }}"
     - "{{ server_certs_dir }}/{{ certs_jks_file }}"
+  delegate_to: "{{ item }}"
+  with_items: "{{ all_hosts }}"
+  when: item != "{{ ansible_fqdn }}"
 
 - name: Create hadoop conf directory if missing
   file:
@@ -50,6 +56,9 @@
     state: directory
   become: yes
   become_user: root
+  delegate_to: "{{ item }}"
+  with_items: "{{ all_hosts }}"
+  when: item != "{{ ansible_fqdn }}"
 
 - name: copy hdfs conf file to all hosts
   template: src="{{ item.src }}" dest="{{ item.dest }}"
@@ -60,5 +69,8 @@
       dest: /etc/hadoop/conf/ssl-client.xml
     - src: default_ssl_server_on_hosts.xml
       dest: /etc/hadoop/conf/ssl-server.xml
+  delegate_to: "{{ item }}"
+  with_items: "{{ all_hosts }}"
+  when: item != "{{ ansible_fqdn }}"
 
 

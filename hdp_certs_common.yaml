@@ -20,6 +20,6 @@
          - HBASE_MASTER
      with_items: "{{ all_hosts }}"
 
-- hosts: RANGER_ADMIN
+- hosts: all
   roles:
       - { name: hdp_certs }

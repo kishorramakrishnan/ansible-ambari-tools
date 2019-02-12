@@ -9,14 +9,10 @@
 
 - name: Include common certs
   include_tasks: setup_basic_certs.yaml
-  delegate_to: "{{ item }}"
-  with_items: "{{ all_hosts }}"
+
 
 - name: Import certs in all hosts common certs
   include_tasks: distribute_all_certs.yaml
-  delegate_to: "{{ item }}"
-  with_items: "{{ all_hosts }}"
-  when: item != "{{ ansible_fqdn }}"
 
 - name: import the certificate to truststore
   become: true

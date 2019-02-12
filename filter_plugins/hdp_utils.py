@@ -15,7 +15,8 @@ def get_ambari_java_home(ambari_conf_file):
         configs = ub_file.readlines()
         for config in configs:
             if config.startswith("java.home"):
-                return config[0][10:].strip().replace(' ', '').replace('\n', '')
+                print(config)
+                return config[10:].strip().replace(' ', '').replace('\n', '')
         raise Exception("No java home found")
 
 class FilterModule(object):

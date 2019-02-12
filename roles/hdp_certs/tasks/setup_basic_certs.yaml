@@ -1,13 +1,13 @@
 
 - name: create directory for certificates (local)
-  delegate_to: localhost
   file:
     path: "{{ item.file }}"
     state: directory
-  run_once: true
   loop:
     - file: "{{ server_certs_dir }}"
     - file: "{{ client_certs_dir }}"
+  delegate_to: "{{ item }}"
+  with_items: "{{ all_hosts }}"
 
 - name: create directory for certificates
   become: true
@@ -20,6 +20,9 @@
   loop:
     - file: "{{ server_certs_dir }}"
     - file: "{{ client_certs_dir }}"
+  delegate_to: "{{ item }}"
+  with_items: "{{ all_hosts }}"
+
 
 - name: create root CA certificate (local)
   delegate_to: localhost
@@ -57,6 +60,8 @@
   args:
     chdir: "{{ server_certs_dir }}"
     creates: "{{ certs_jks_file }}"
+  delegate_to: "{{ item }}"
+  with_items: "{{ all_hosts }}"
 
 - name: export the public key to certificate file
   become: true
@@ -70,6 +75,8 @@
   args:
     chdir: "{{ server_certs_dir }}"
     creates: "{{ cert_pub_key }}"
+  delegate_to: "{{ item }}"
+  with_items: "{{ all_hosts }}"
 
 - name: import the certificate to truststore
   become: true
@@ -83,6 +90,8 @@
   args:
     chdir: "{{ server_certs_dir }}"
     creates: "{{ cert_pub_key }}"
+  delegate_to: "{{ item }}"
+  with_items: "{{ all_hosts }}"
 
 - name: import the certificate to cacertstore
   become: true
@@ -95,6 +104,8 @@
       -storepass "{{ certs_jks_store_password }}"
   args:
     chdir: "{{ server_certs_dir }}"
+  delegate_to: "{{ item }}"
+  with_items: "{{ all_hosts }}"
 
 - name: change ownership of keystore file
   become: true
@@ -103,3 +114,5 @@
     owner: root
     group: root
     mode: 0644
+  delegate_to: "{{ item }}"
+  with_items: "{{ all_hosts }}"

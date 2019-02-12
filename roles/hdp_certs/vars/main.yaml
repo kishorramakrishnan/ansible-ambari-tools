@@ -1,4 +1,9 @@
 certs_use_local_ca: true
+OU: Engineering
+O: Hortonworks
+L: Santa Clara
+ST: CA
+C: US
 
 server_certs_dir: /etc/security/serverKeys
 client_certs_dir: /etc/security/clientKeys
