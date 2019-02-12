@@ -6,8 +6,8 @@
     state: directory
   run_once: true
   loop:
-    - file: {{ server_certs_dir }}
-    - file: {{ client_certs_dir }}
+    - file: "{{ server_certs_dir }}"
+    - file: "{{ client_certs_dir }}"
 
 - name: create directory for certificates
   become: true
@@ -18,8 +18,8 @@
     group: root
     mode: 0755
   loop:
-    - file: {{ server_certs_dir }}
-    - file: {{ client_certs_dir }}
+    - file: "{{ server_certs_dir }}"
+    - file: "{{ client_certs_dir }}"
 
 - name: create root CA certificate (local)
   delegate_to: localhost

@@ -1,7 +1,7 @@
 - name: copy certificate file
   copy:
-    src: {{ server_certs_dir }}/{{ cert_pub_key }}
-    dest: {{ server_certs_dir }}/{{ cert_pub_key }}_{{ ansible_fqdn }}
+    src: "{{ server_certs_dir }}/{{ cert_pub_key }}"
+    dest: "{{ server_certs_dir }}/{{ cert_pub_key }}_{{ ansible_fqdn }}"
 
 - name: import the certificate to truststore
   become: true
@@ -29,8 +29,8 @@
     recursive: yes
     mode: 755
   loop:
-    - {{ client_certs_dir }}
-    - {{ server_certs_dir }}
+    - "{{ client_certs_dir }}"
+    - "{{ server_certs_dir }}"
 
 - name: set file permissions
   file:
@@ -39,10 +39,10 @@
     group: hadoop
     mode: 440
   loop:
-    - {{ client_certs_dir }}/{{ all_jks_file }}
-    - {{ server_certs_dir }}/{{ cert_pub_key }}
-    - {{ server_certs_dir }}/{{ truststore_file }}
-    - {{ server_certs_dir }}/{{ certs_jks_file }}
+    - "{{ client_certs_dir }}/{{ all_jks_file }}"
+    - "{{ server_certs_dir }}/{{ cert_pub_key }}"
+    - "{{ server_certs_dir }}/{{ truststore_file }}"
+    - "{{ server_certs_dir }}/{{ certs_jks_file }}"
 
 - name: Create hadoop conf directory if missing
   file:
