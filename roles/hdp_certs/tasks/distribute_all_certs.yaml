@@ -23,31 +23,27 @@
 
 - name: set directory permissions
   file:
-    dest: {{ item }}
+    dest: "{{ item[0] }}"
     owner: root
     group: hadoop
     recursive: yes
     mode: 755
-  loop:
-    - "{{ client_certs_dir }}"
-    - "{{ server_certs_dir }}"
-  delegate_to: "{{ item }}"
-  with_items: "{{ all_hosts }}"
-  when: item != "{{ ansible_fqdn }}"
+  delegate_to: "{{ item[1] }}"
+  with_nested:
+    - [ "{{ server_certs_dir }}", "{{ client_certs_dir }}"]
+    - "{{ all_hosts }}"
+  when: item[1] != "{{ ansible_fqdn }}"
 
 - name: set file permissions
   file:
-    dest: {{ item }}
+    dest: "{{ item[0] }}"
     owner: root
     group: hadoop
     mode: 440
-  loop:
-    - "{{ client_certs_dir }}/{{ all_jks_file }}"
-    - "{{ server_certs_dir }}/{{ cert_pub_key }}"
-    - "{{ server_certs_dir }}/{{ truststore_file }}"
-    - "{{ server_certs_dir }}/{{ certs_jks_file }}"
-  delegate_to: "{{ item }}"
-  with_items: "{{ all_hosts }}"
+  delegate_to: "{{ item[1] }}"
+  with_nested:
+    - ["{{ client_certs_dir }}/{{ all_jks_file }}", "{{ server_certs_dir }}/{{ cert_pub_key }}", "{{ server_certs_dir }}/{{ truststore_file }}","{{ server_certs_dir }}/{{ certs_jks_file }}"]
+    - "{{ all_hosts }}"
   when: item != "{{ ansible_fqdn }}"
 
 - name: Create hadoop conf directory if missing

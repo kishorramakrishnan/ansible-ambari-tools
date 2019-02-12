@@ -1,27 +1,25 @@
 
 - name: create directory for certificates (local)
   file:
-    path: "{{ item.file }}"
+    path: "{{ item[0] }}"
     state: directory
-  loop:
-    - file: "{{ server_certs_dir }}"
-    - file: "{{ client_certs_dir }}"
-  delegate_to: "{{ item }}"
-  with_items: "{{ all_hosts }}"
+  delegate_to: "{{ item[1] }}"
+  with_nested:
+    - [ "{{ server_certs_dir }}", "{{ client_certs_dir }}"]
+    - "{{ all_hosts }}"
 
 - name: create directory for certificates
   become: true
   file:
-    path: "{{ item.file }}"
+    path: "{{ item[0] }}"
     state: directory
     owner: root
-    group: root
+    group: hadoop
     mode: 0755
-  loop:
-    - file: "{{ server_certs_dir }}"
-    - file: "{{ client_certs_dir }}"
-  delegate_to: "{{ item }}"
-  with_items: "{{ all_hosts }}"
+  delegate_to: "{{ item[1] }}"
+  with_nested:
+    - [ "{{ server_certs_dir }}", "{{ client_certs_dir }}"]
+    - "{{ all_hosts }}"
 
 
 - name: create root CA certificate (local)
