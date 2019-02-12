@@ -33,7 +33,7 @@
     dest: "{{ item[0] }}"
     owner: root
     group: hadoop
-    recursive: yes
+    recurse: yes
     mode: 755
   delegate_to: "{{ item[1] }}"
   with_nested:
@@ -49,7 +49,6 @@
     owner: root
     group: hadoop
     mode: 440
-  delegate_to: "{{ item }}"
   with_items:
     - "{{ client_certs_dir }}/{{ all_jks_file }}"
     - "{{ server_certs_dir }}/{{ cert_pub_key }}"

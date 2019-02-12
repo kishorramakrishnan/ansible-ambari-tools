@@ -1,4 +1,6 @@
 - name: Get ambari java home
+  delegate_to: localhost
+  run_once: true
   set_fact:
     java_home: '{{ "/etc/ambari-server/conf/ambari.properties" | get_ambari_java_home }}'
 
@@ -9,10 +11,6 @@
 
 - name: Include common certs
   include_tasks: setup_basic_certs.yaml
-
-
-- name: Import certs in all hosts common certs
-  include_tasks: distribute_all_certs.yaml
 
 - name: import the certificate to truststore
   become: true
@@ -33,11 +31,13 @@
   copy:
     src: "{{ client_certs_dir }}/{{ all_jks_file }}"
     dest: "{{ client_certs_dir }}/"
-  args:
-    chdir: "{{ client_certs_dir }}"
-    creates: "{{ all_jks_file }}"
   with_items: "{{ all_hosts }}"
   when: item != "{{ ansible_fqdn }}"
+
+- name: Import certs in all hosts common certs
+  include_tasks: distribute_all_certs.yaml
+
+
 
 - name: import the certificate to truststore
   become: true

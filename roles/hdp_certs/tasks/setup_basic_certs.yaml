@@ -78,7 +78,7 @@
       -storepass "{{ certs_jks_store_password }}"
   args:
     chdir: "{{ server_certs_dir }}"
-    creates: "{{ cert_pub_key }}"
+    creates: "{{ truststore_file }}"
 
 - name: import the certificate to cacertstore
   become: true
