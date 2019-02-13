@@ -3,4 +3,4 @@ O: Hortonworks
 L: Santa Clara
 ST: CA
 C: US
-certs_dir: /etc/wire_encryption/ranger
+certs_dir: /etc/security/serverKeys
