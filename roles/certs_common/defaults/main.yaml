@@ -1,9 +1,9 @@
 certs_use_local_ca: true
 
-certs_dir: /etc/security/serverKeys
+certs_dir: /etc/wire_encryption
 certs_local_dir: ./certs
 
-certs_jks_file: keystore.jks
+certs_jks_file: certs.jks
 certs_jks_req: certs.req
 certs_jks_cert: certs.crt
 certs_jks_keysize: 2048

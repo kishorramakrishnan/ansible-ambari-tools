@@ -3,7 +3,7 @@ O: Hortonworks
 L: Santa Clara
 ST: CA
 C: US
-certs_dir: /etc/security/serverKeys
+certs_dir: /etc/wire_encryption/kafka
 
 ssl_listeners:
   - PLAINTEXT://localhost:6668

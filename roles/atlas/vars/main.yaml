@@ -3,7 +3,7 @@ O: Hortonworks
 L: Santa Clara
 ST: CA
 C: US
-certs_dir: /etc/security/serverKeys
+certs_dir: /etc/wire_encryption/atlas
 server_storepass_password: serverStorePassPassword
 client_truststore_password: clientTrustStorePassword
 server_keypass_password: serverKeyPassPassword

@@ -19,7 +19,3 @@
          - ATLAS_SERVER
          - HBASE_MASTER
      with_items: "{{ all_hosts }}"
-
-- hosts: all
-  roles:
-      - { name: hdp_certs }
