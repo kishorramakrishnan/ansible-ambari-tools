@@ -4,20 +4,16 @@
     name: pexpect
   become: yes
 
-- name: get loadbalancer host name
-  shell: "hostname -f"
-  register: loadbalancer_host
-
 - name : STOP KNOX
   debug :
-    var: loadbalancer_host
+    var: {{ ansible_fqdn }}
   notify:
     - stop knox
   changed_when: true
 
-- name: Fetch Topology files from KNox gateway host
+- name: Fetch Topology files from Knox gateway host
   fetch:
-    src: "/usr/hdp/current/knox-server/conf/topologies/{{ item }}"
+    src: "{{ knox_topology_src_dir }}/{{ item }}"
     flat: yes
     dest: "/knox_temp/"
     remote_src: yes
@@ -32,7 +28,7 @@
 
 - name: Fetch keystore files from Knox gateway host
   fetch:
-    src: "/usr/hdp/current/knox-server/data/security/keystores/{{ item }}"
+    src: "{{ knox_security_keystore_dir }}/{{ item }}"
     flat: yes
     dest: "/knox_temp/"
   become: yes
@@ -56,8 +52,7 @@
   become_user: root
   copy:
     src: "/knox_temp/{{ item }}"
-    dest: "/etc/knox/conf/topologies/"
-    owner: ranger
+    dest: "{{ knox_topology_dir }}"
     mode: 550
     group: hadoop
   with_items:
@@ -71,8 +66,7 @@
   become_user: root
   copy:
     src: "/knox_temp/{{ item }}"
-    dest: "/usr/hdp/current/knox-server/data/security/keystores/"
-    owner: ranger
+    dest: "{{ knox_security_keystore_dir }}/"
     mode: 550
     group: hadoop
   with_items:
@@ -81,11 +75,9 @@
     - knoxsso-credentials.jceks
     - manager-credentials.jceks
 
-
-
 - name : START KNOX
   debug :
-    var: loadbalancer_host
+    var: {{ ansible_fqdn }}
   notify:
     - start knox
   changed_when: true

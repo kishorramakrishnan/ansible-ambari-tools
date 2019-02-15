@@ -3,26 +3,10 @@
     ansible_python_default_interpreter: "{{ ansible_python_interpreter }}"
     ansible_python_interpreter:  "/usr/bin/python"
 
-- name: log ranger protocol
-  debug: var=ranger_protocol
-
-- name : read yml
-  shell: 'cat /etc/unbound/conf.d/00-cluster.conf | grep \.local-data-ptr | sed "s/\"/ /g" | cut -d ":" -f2- | cut -d " " -f 4'
-  register: local_hosts
-  become: yes
-  become_user: root
-
-- name: set_fact
-  set_fact:
-    all_hosts: "{{ local_hosts.stdout_lines | list }}"
-
-- name: dynamic hosts
+- name: Read all hosts and set it with index
   set_fact:
     ranger_host_{{ item.0 }} : "{{ item.1 }}"
-  with_indexed_items: "{{ all_hosts }}"
-
-- name: log all hosts
-  debug: var=all_hosts
+  with_indexed_items: "{{ unbound_conf_file | get_all_hosts }}"
 
 - name: Install apache packages
   package:
@@ -53,9 +37,10 @@
   become_user: root
 
 - name: create symlinks to enabled virtual hosts
-  command: sudo ln -s /etc/{{ webserver_service }}/sites-available/{{ domain }}.conf /etc/{{ webserver_service }}/sites-enabled/{{ domain }}.conf
-  become: yes
-  become_user: root
+  file:
+    src: /etc/{{ webserver_service }}/sites-available/{{ domain }}.conf
+    dest: /etc/{{ webserver_service }}/sites-enabled/{{ domain }}.conf
+    state: link
 
 - name: Append conf in httpd.conf file
   become: yes
@@ -64,4 +49,4 @@
     path: /etc/{{ webserver_service }}/conf/{{ webserver_service }}.conf
     line: IncludeOptional sites-enabled/*.conf
   notify:
-    - restart httpd
+    - restart {{ webserver_service }}

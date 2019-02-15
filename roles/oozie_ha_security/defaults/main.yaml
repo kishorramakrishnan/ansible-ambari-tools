@@ -1,0 +1,6 @@
+oozie_ha_config_type: oozie-site
+oozie_ha_config_props:
+  oozie.ha.authentication.kerberos.keytab:
+    value: /etc/security/keytabs/oozie.ha.keytab
+  oozie.base.url:
+    value: "{{ oozie_url }}"

@@ -115,7 +115,7 @@
   listen: start knox
 
 
-- name: wait stop knox
+- name: wait start knox
   delegate_to: localhost
   run_once: true
   uri:
