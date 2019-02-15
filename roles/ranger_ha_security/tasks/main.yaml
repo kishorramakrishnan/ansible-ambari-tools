@@ -65,6 +65,16 @@
     ranger_loadbalancer: "{{ ansible_fqdn }}"
     ambari_port: 8080
     ambari_protocol : http
+  when: not is_we == true
+
+- name: set all configs for Ranger HA modfication
+  set_fact:
+    ranger_protocol: https
+    ranger_port: 6182
+    ranger_loadbalancer: "{{ ansible_fqdn }}"
+    ambari_port: 8080
+    ambari_protocol : http
+  when: is_we == true
 
 - name: set Ranger url as loadbalancer url
   set_fact:

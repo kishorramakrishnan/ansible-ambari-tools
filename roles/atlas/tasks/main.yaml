@@ -16,3 +16,33 @@
     component_prefix: atlas
   become: yes
   become_user: root
+
+- name: copy password_gen
+  template:
+    src: password_gen.j2
+    dest: /etc/atlas/conf/password_gen
+    mode: 755
+  become: yes
+  become_user: root
+
+- name: Execute the script
+  command: sh /etc/atlas/conf/password_gen
+  become: yes
+  become_user: root
+
+- name: Set right permission for atlas jceks files
+  file:
+    path: {{ item }}
+    mode: 444
+    owner: atlas
+    group: hadoop
+  loop:
+    - {{ passwdFileLocationActualPath }}
+    - {{ passwdCrcFileLocation }}
+
+- name: Save SSL configs for Atlas
+  include_role:
+    name: ambari_configure_service
+  vars:
+    ambari_component_section_name: "{{ atlas_application-properties_config_type }}"
+    ambari_component_props: "{{ atlas_application-properties_config_props }}"

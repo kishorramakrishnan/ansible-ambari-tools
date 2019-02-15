@@ -2,41 +2,53 @@
 - hosts: all
 
 - import_playbook: hdp_certs_common.yaml
+  tags:
+    - hdp
+    - pre_deploy
+    - post_deploy
 
 - import_playbook: component_hdfs_hdp_we.yaml
   tags:
     - hdfs
     - hdp
+    - pre_deploy
 
 - import_playbook: component_yarn_hdp_we.yaml
   tags:
     - yarn
     - hdp
+    - pre_deploy
 
 - import_playbook: component_zookeeper_hdp_we.yaml
   tags:
     - zookeeper
     - hdp
+    - pre_deploy
 
 - import_playbook: component_mapreduce_hdp_we.yaml
   tags:
     - mapreduce
+    - pre_deploy
 
 - import_playbook: component_hbase_hdp_we.yaml
   tags:
     - hbase
     - hdp
+    - pre_deploy
 
 - import_playbook: component_kafka_hdp_we.yaml
   tags:
     - kafka
     - hdp
+    - pre_deploy
 
 - import_playbook: component_ranger_hdp_we.yaml
   tags:
     - ranger
     - hdp
+    - pre_deploy
 
 - import_playbook: component_atlas_hdp_we.yaml
   tags:
     - atlas
+    - post_deploy
