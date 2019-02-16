@@ -32,13 +32,13 @@
 
 - name: Set right permission for atlas jceks files
   file:
-    path: {{ item }}
+    path: "{{ item }}"
     mode: 444
     owner: atlas
     group: hadoop
   loop:
-    - {{ passwdFileLocationActualPath }}
-    - {{ passwdCrcFileLocation }}
+    - "{{ passwdFileLocationActualPath }}"
+    - "{{ passwdCrcFileLocation }}"
 
 - name: Save SSL configs for Atlas
   include_role:
