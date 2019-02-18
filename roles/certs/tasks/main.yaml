@@ -38,7 +38,7 @@
   become: true
   command: >
     keytool -genkeypair
-      -alias "{{ ansible_fqdn }}"
+      -alias "{{ certs_local_alias | default(ansible_fqdn) }}"
       -dname "CN={{ ansible_fqdn }},{{ certs_jks_subject_suffix }}"
       -keystore "{{ certs_jks_file }}"
       -keypass "{{ certs_jks_key_password }}"

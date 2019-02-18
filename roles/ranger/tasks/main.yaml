@@ -4,6 +4,6 @@
     name: certs
   vars:
     component_prefix: ranger
-    alias: rangeradmin
+    certs_local_alias: rangeradmin
   become: yes
   become_user: root
