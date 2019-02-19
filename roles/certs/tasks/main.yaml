@@ -146,7 +146,7 @@
   loop:
     - alias: "{{ certs_ca_alias }}"
       file: "{{ certs_ca_cert }}"
-    - alias: "{{ certs_local_alias | default(ansible_fqdn) }}"
+    - alias: "{{ certs_local_alias | default(ansible_fqdn) }}"`
       file: "{{ certs_jks_cert }}"
   loop_control:
     label: "{{ item.alias }}"
