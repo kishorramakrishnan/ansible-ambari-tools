@@ -17,6 +17,19 @@
   become: yes
   become_user: root
 
+- name: Invoke wire encryption for ranger plugins
+  include_role:
+    name: certs
+  vars:
+    component_prefix: ranger-plugin
+    certs_local_alias: "rangerAtlasAgent"
+    certs_jks_file: ranger-plugin.jks
+    certs_jks_req: ranger-plugin.req
+    certs_jks_cert: ranger-plugin.crt
+  become: yes
+  become_user: root
+  when: install_ranger == true
+
 - name: copy password_gen
   template:
     src: password_gen.j2
@@ -46,3 +59,10 @@
   vars:
     ambari_component_section_name: "{{ atlas_application-properties_config_type }}"
     ambari_component_props: "{{ atlas_application-properties_config_props }}"
+
+- name: Save SSL configs for Atlas-Ranger Plugin
+  include_role:
+    name: ambari_configure_service
+  vars:
+    ambari_component_section_name: "{{ atlas_ranger_plugin_config_type }}"
+    ambari_component_props: "{{ atlas_ranger_plugin_config_props }}"
