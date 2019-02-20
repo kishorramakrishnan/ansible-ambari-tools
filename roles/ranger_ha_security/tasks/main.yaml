@@ -60,7 +60,7 @@
 
 - name: Check that the WE directory for ranger exists
   stat:
-    path: /etc/wire_encryption/ranger
+    path: "/opt/scripts/pre-ambari-start/{{ cluster_name }}-all-setup-wireencryption-sh-pre-ambari-start"
   register: is_ranger_we
   become: yes
   become_user: root
@@ -72,7 +72,7 @@
     ranger_loadbalancer: "{{ ansible_fqdn }}"
     ambari_port: 8080
     ambari_protocol : http
-  when: is_ranger_we.stat.exists == False
+  when: is_ranger_we.stat.exists == false
 
 - name: set all configs for Ranger HA modfication
   set_fact:
@@ -81,7 +81,7 @@
     ranger_loadbalancer: "{{ ansible_fqdn }}"
     ambari_port: 8080
     ambari_protocol : http
-  when: is_ranger_we.stat.exists == True
+  when: is_ranger_we.stat.exists == true
 
 - name: set Ranger url as loadbalancer url
   set_fact:
