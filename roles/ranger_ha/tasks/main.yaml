@@ -18,7 +18,7 @@
 
 - name: Check that the WE directory for ranger exists
   stat:
-    path: "/opt/scripts/pre-ambari-start/{{ cluster_name }}-all-setup-wireencryption-sh-pre-ambari-start"
+    path: /etc/wire_encryption/ranger
   register: is_ranger_we
   become: yes
   become_user: root
@@ -28,7 +28,7 @@
     ranger_protocol: https
     ranger_port: 6182
     ranger_loadbalancer_template: ranger_loadbalancer_ssl.conf.j2
-  when: is_ranger_we.stat.exists == true
+  when: is_ranger_we.stat.exists == True
 
 - name: create directory for Knox certificates
   become: true
@@ -38,7 +38,7 @@
     owner: root
     group: root
     mode: 0755
-  when: is_ranger_we.stat.exists == true
+  when: is_ranger_we.stat.exists == True
 
 - name: Creates sites-available directory
   file:
@@ -55,7 +55,7 @@
     replace: '8043'
   become: yes
   become_user: root
-  when: certs_use_local_ca and is_ranger_we.stat.exists == true
+  when: certs_use_local_ca and is_ranger_we.stat.exists == True
 
 - name: create root CA certificate (local)
   command: >
@@ -74,7 +74,7 @@
     chdir: "{{ ranger_ca_cert_dir }}"
     creates: "{{ ranger_ca_cert_path }}"
   run_once: true
-  when: certs_use_local_ca and is_ranger_we.stat.exists == true
+  when: certs_use_local_ca and is_ranger_we.stat.exists == True
 
 - name: Removing the passphrase from the private key
   command: >
@@ -85,7 +85,7 @@
   args:
     chdir: "{{ ranger_ca_cert_dir }}"
   run_once: true
-  when: certs_use_local_ca and is_ranger_we.stat.exists == true
+  when: certs_use_local_ca and is_ranger_we.stat.exists == True
 
 - name: Creates sites-enabled directory
   file:
@@ -117,4 +117,4 @@
 
 - name: Run semanage command
   command: semanage port -a -N -t http_port_t -p tcp 6182
-  when: certs_use_local_ca and is_ranger_we.stat.exists == true
+  when: certs_use_local_ca and is_ranger_we.stat.exists == True
