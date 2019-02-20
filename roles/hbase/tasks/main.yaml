@@ -21,7 +21,7 @@
   include_role:
     name: certs
   vars:
-    component_prefix: ranger-plugin
+    component_prefix: ranger-hbase-plugin
     certs_local_alias: "rangerHbaseAgent"
     certs_jks_file: ranger-plugin.jks
     certs_jks_req: ranger-plugin.req
