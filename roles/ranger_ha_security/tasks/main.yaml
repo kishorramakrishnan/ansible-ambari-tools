@@ -58,6 +58,13 @@
   delegate_to: "{{ item }}"
   with_items: "{{ all_hosts }}"
 
+- name: Check that the WE directory for ranger exists
+  stat:
+    path: /etc/wire_encryption/ranger
+  register: is_ranger_we
+  become: yes
+  become_user: root
+
 - name: set all configs for Ranger HA modfication
   set_fact:
     ranger_protocol: http
@@ -65,7 +72,7 @@
     ranger_loadbalancer: "{{ ansible_fqdn }}"
     ambari_port: 8080
     ambari_protocol : http
-  when: not is_we == true
+  when: is_ranger_we.stat.exists == False
 
 - name: set all configs for Ranger HA modfication
   set_fact:
@@ -74,7 +81,7 @@
     ranger_loadbalancer: "{{ ansible_fqdn }}"
     ambari_port: 8080
     ambari_protocol : http
-  when: is_we == true
+  when: is_ranger_we.stat.exists == True
 
 - name: set Ranger url as loadbalancer url
   set_fact:
