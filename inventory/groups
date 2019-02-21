@@ -1,6 +1,7 @@
 # List all hostgroups which appear in component_*.yaml
 [ACCUMULO_MASTER]
 [KAFKA_BROKER]
+[KNOX_GATEWAY]
 [NAMENODE]
 [RANGER_ADMIN]
 [HBASE_MASTER]

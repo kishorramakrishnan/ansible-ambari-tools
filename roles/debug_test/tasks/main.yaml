@@ -1,0 +1,20 @@
+---
+
+- name: simple stat
+  stat:
+    path: /usr/hdp/current/knox-server/conf/topologies/admin.xml
+  delegate_to: KNOX_GATEWAY[0]
+
+- name: Fetch Topology files from KNox gateway host
+  fetch:
+    src: "/usr/hdp/current/knox-server/conf/topologies/{{ item }}"
+    flat: yes
+    dest: "/knox_temp/{{ item }}"
+  become: yes
+  become_user: root
+  delegate_to: KNOX_GATEWAY[0]
+  with_items:
+    - admin.xml
+    - knoxssl.xml
+    - manager.xml
+    - sandbox.xml

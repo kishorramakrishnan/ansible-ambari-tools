@@ -42,7 +42,7 @@
 
 - name: Creates sites-available directory
   file:
-    path: /etc/{{ webserver_service }}/sites-available
+    path: "/etc/{{ webserver_service }}/sites-available"
     state: directory
     mode: 0777
   become: yes
@@ -89,7 +89,7 @@
 
 - name: Creates sites-enabled directory
   file:
-    path: /etc/{{ webserver_service }}/sites-enabled
+    path: "/etc/{{ webserver_service }}/sites-enabled"
     state: directory
     mode: 0777
   become: yes
@@ -102,18 +102,18 @@
 
 - name: create symlinks to enabled virtual hosts
   file:
-    src: /etc/{{ webserver_service }}/sites-available/{{ domain }}.conf
-    dest: /etc/{{ webserver_service }}/sites-enabled/{{ domain }}.conf
+    src: "/etc/{{ webserver_service }}/sites-available/{{ domain }}.conf"
+    dest: "/etc/{{ webserver_service }}/sites-enabled/{{ domain }}.conf"
     state: link
 
 - name: Append conf in httpd.conf file
   become: yes
   become_user: root
   lineinfile:
-    path: /etc/{{ webserver_service }}/conf/{{ webserver_service }}.conf
+    path: "/etc/{{ webserver_service }}/conf/{{ webserver_service }}.conf"
     line: IncludeOptional sites-enabled/*.conf
   notify:
-    - restart {{ webserver_service }}
+    - restart "{{ webserver_service }}"
 
 - name: Run semanage command
   command: semanage port -a -N -t http_port_t -p tcp 6182

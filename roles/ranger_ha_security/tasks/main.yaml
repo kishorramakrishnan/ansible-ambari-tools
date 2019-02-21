@@ -8,7 +8,7 @@
   run_once: true
   delegate_to: localhost
   uri:
-    url: https://{{ ambari_host }}/ambari/api/v1/clusters/{{ cluster_name }}/services/{{ item|upper }}
+    url: "https://{{ ambari_host }}/ambari/api/v1/clusters/{{ cluster_name }}/services/{{ item|upper }}"
     user: "{{ ambari_user }}"
     password: "{{ ambari_password }}"
     status_code: 404,200
@@ -21,7 +21,7 @@
 
 - name : Log services installed
   debug:
-    var: install_{{ item }}
+    var: "install_{{ item }}"
   with_items: "{{ plugin_services }}"
 
 - name: Fetch Spnego keytabs from all hosts

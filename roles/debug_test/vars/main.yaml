@@ -1,0 +1,4 @@
+ranger_protocol: http
+ranger_port: 6080
+domain: example.com
+webserver_service: httpd
