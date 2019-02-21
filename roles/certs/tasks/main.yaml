@@ -1,5 +1,5 @@
 - name: Get ambari java home
-  delegate_to: localhost
+  delegate_to: "{{ ambari_host }}"
   run_once: true
   set_fact:
     java_home: '{{ "/etc/ambari-server/conf/ambari.properties" | get_ambari_java_home }}'
@@ -7,6 +7,7 @@
 - name: set CA cert path and all hosts
   set_fact:
     java_ca_cert_path: "{{ java_home }}/jre/lib/security/cacerts"
+  delegate_to: "{{ ambari_host }}"
 
 - name: create directory for certificates (local)
   delegate_to: localhost
