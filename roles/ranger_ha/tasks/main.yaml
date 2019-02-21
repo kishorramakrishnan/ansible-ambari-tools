@@ -15,6 +15,21 @@
   become: yes
   become_user: root
 
+- name: Install apache module packages
+  package:
+    name: "{{ item }}"
+    state: present
+  become: yes
+  become_user: root
+  with_items:
+    - openssl-devel
+    - gcc-c++
+    - glibc-headers
+    - glibc-devel
+    - glibc
+    - kernel-headers
+    - openldap-devel
+    - mod_ssl
 
 - name: Check that the WE directory for ranger exists
   stat:
@@ -30,7 +45,7 @@
     ranger_loadbalancer_template: ranger_loadbalancer_ssl.conf.j2
   when: is_ranger_we.stat.exists == true
 
-- name: create directory for Knox certificates
+- name: create directory for Ranger certificates
   become: true
   file:
     path: "{{ ranger_ca_cert_dir }}"
@@ -114,7 +129,3 @@
     line: IncludeOptional sites-enabled/*.conf
   notify:
     - restart {{ webserver_service }}
-
-- name: Run semanage command
-  command: semanage port -a -N -t http_port_t -p tcp 6182
-  when: certs_use_local_ca and is_ranger_we.stat.exists == true
