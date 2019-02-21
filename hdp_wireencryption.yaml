@@ -25,6 +25,24 @@
     - hdp
     - pre_deploy
 
+- import_playbook: component_hive_hdp_we.yaml
+  tags:
+    - hive
+    - hdp
+    - pre_deploy
+
+- import_playbook: component_oozie_hdp_we.yaml
+  tags:
+    - oozie
+    - hdp
+    - pre_deploy
+
+- import_playbook: component_spark_hdp_we.yaml
+  tags:
+    - spark
+    - hdp
+    - pre_deploy
+
 - import_playbook: component_mapreduce_hdp_we.yaml
   tags:
     - mapreduce

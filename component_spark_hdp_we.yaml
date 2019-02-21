@@ -1,0 +1,4 @@
+---
+- hosts: SPARK_THRIFTSERVER
+  roles:
+    - { name: spark, when: install_spark == true }

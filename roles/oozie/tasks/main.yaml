@@ -1,9 +1,9 @@
 ---
-- name: Invoke wire encryption for hive
+- name: Invoke wire encryption for oozie
   include_role:
     name: certs
   vars:
-    component_prefix: hive
+    component_prefix: oozie
   become: yes
   become_user: root
 
@@ -11,8 +11,8 @@
   include_role:
     name: certs
   vars:
-    component_prefix: ranger-hive-plugin
-    certs_local_alias: "rangerHiveAgent"
+    component_prefix: ranger-oozie-plugin
+    certs_local_alias: "rangerOozieAgent"
     certs_jks_file: ranger-plugin.jks
     certs_jks_req: ranger-plugin.req
     certs_jks_cert: ranger-plugin.crt

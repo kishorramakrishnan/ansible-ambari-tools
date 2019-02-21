@@ -1,0 +1,4 @@
+---
+- hosts: HIVE_SERVER
+  roles:
+    - { name: hive, when: install_hive == true }

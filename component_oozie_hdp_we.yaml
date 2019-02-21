@@ -1,0 +1,4 @@
+---
+- hosts: OOZIE_SERVER
+  roles:
+    - { name: oozie, when: install_oozie == true }
