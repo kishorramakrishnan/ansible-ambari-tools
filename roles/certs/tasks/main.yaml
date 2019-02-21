@@ -168,7 +168,7 @@
   command: >
     keytool -import
       -noprompt
-      -alias "{{ ansible_fqdn }}"
+      -alias "rangerAgentTrust"
       -file "{{ certs_dir }}/{{ certs_ca_cert }}"
       -keystore "{{ java_ca_cert_path }}"
       -storepass "{{ java_jks_store_password }}"
