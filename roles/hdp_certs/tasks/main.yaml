@@ -40,7 +40,6 @@
   include_tasks: distribute_all_certs.yaml
 
 
-
 - name: import the certificate to truststore
   become: true
   become_user: root

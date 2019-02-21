@@ -6,4 +6,6 @@ certs_jks_key_password: changeit
 certs_jks_store_password: changeit
 certs_ca_password: changeit
 
+java_jks_store_password: changeit
+
 ansible_user: cloudbreak

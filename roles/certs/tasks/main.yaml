@@ -1,3 +1,13 @@
+- name: Get ambari java home
+  delegate_to: localhost
+  run_once: true
+  set_fact:
+    java_home: '{{ "/etc/ambari-server/conf/ambari.properties" | get_ambari_java_home }}'
+
+- name: set CA cert path and all hosts
+  set_fact:
+    java_ca_cert_path: "{{ java_home }}/jre/lib/security/cacerts"
+
 - name: create directory for certificates (local)
   delegate_to: localhost
   file:
@@ -163,3 +173,4 @@
       -storepass "{{ java_jks_store_password }}"
   args:
     chdir: "{{ server_certs_dir }}"
+  when: install_ranger is defined and install_ranger == true
