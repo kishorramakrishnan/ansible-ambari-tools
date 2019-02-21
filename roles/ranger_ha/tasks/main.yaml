@@ -113,7 +113,7 @@
     path: "/etc/{{ webserver_service }}/conf/{{ webserver_service }}.conf"
     line: IncludeOptional sites-enabled/*.conf
   notify:
-    - restart "{{ webserver_service }}"
+    - restart {{ webserver_service }}
 
 - name: Run semanage command
   command: semanage port -a -N -t http_port_t -p tcp 6182

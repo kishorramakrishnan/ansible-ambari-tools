@@ -49,4 +49,4 @@
     path: "/etc/{{ webserver_service }}/conf/{{ webserver_service }}.conf"
     line: IncludeOptional sites-enabled/*.conf
   notify:
-    - restart "{{ webserver_service }}"
+    - restart {{ webserver_service }}
