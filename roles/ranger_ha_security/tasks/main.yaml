@@ -73,8 +73,9 @@
     ambari_port: 8080
     ambari_protocol : http
   when: is_ranger_we.stat.exists == false
+  delegate_to: localhost
 
-- name: set all configs for Ranger HA modfication
+- name: set all configs for Ranger HA modification
   set_fact:
     ranger_protocol: https
     ranger_port: 6182
@@ -82,6 +83,7 @@
     ambari_port: 8080
     ambari_protocol : http
   when: is_ranger_we.stat.exists == true
+  delegate_to: localhost
 
 - name: set Ranger url as loadbalancer url
   set_fact:

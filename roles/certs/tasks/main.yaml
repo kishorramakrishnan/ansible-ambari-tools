@@ -150,3 +150,16 @@
       file: "{{ certs_jks_cert }}"
   loop_control:
     label: "{{ item.alias }}"
+
+- name: import the signing certificate to cacertstore
+  become: true
+  become_user: root
+  command: >
+    keytool -import
+      -noprompt
+      -alias "{{ ansible_fqdn }}"
+      -file "{{ certs_ca_cert }}"
+      -keystore "{{ java_ca_cert_path }}"
+      -storepass "{{ java_jks_store_password }}"
+  args:
+    chdir: "{{ server_certs_dir }}"
