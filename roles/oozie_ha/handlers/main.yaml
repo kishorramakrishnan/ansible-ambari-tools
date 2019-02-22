@@ -1,5 +1,5 @@
 ---
-- name: restart httpd
-  service: name=httpd state=restarted
+- name: restart {{ webserver_service }}
+  service: name={{ webserver_service }} state=restarted
   become: yes
   become_user: root
