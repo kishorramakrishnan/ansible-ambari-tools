@@ -3,9 +3,9 @@
     ansible_python_default_interpreter: "{{ ansible_python_interpreter }}"
     ansible_python_interpreter:  "/usr/bin/python"
 
-- name: get all_hosts
+- name: set_fact
   set_fact:
-    all_hosts: "{{ unbound_conf_file | get_all_hosts }}"
+    all_hosts: "{{ groups['RANGER_ADMIN'] }}"
 
 - name: Read all hosts and set it with index
   set_fact:

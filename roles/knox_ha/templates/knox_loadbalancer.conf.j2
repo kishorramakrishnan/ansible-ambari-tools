@@ -28,11 +28,6 @@ Listen 444
    <Proxy balancer://{{ cluster_name }}>
     BalancerMember {{ knox_protocol }}://{{ knox_host_0 }}:{{ knox_port }} loadfactor=1 route=1 timeout=5 retry=60
     BalancerMember {{ knox_protocol }}://{{ knox_host_1 }}:{{ knox_port }} loadfactor=1 route=1 timeout=5 retry=60
-    BalancerMember {{ knox_protocol }}://{{ knox_host_2 }}:{{ knox_port }} loadfactor=1 route=1 timeout=5 retry=60
-    BalancerMember {{ knox_protocol }}://{{ knox_host_3 }}:{{ knox_port }} loadfactor=1 route=1 timeout=5 retry=60
-    BalancerMember {{ knox_protocol }}://{{ knox_host_4 }}:{{ knox_port }} loadfactor=1 route=1 timeout=5 retry=60
-    BalancerMember {{ knox_protocol }}://{{ knox_host_5 }}:{{ knox_port }} loadfactor=1 route=1 timeout=5 retry=60
-
      ProxySet failontimeout=On lbmethod=byrequests stickysession=ROUTEID
    </Proxy>
 

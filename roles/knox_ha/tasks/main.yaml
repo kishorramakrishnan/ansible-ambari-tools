@@ -3,10 +3,14 @@
     ansible_python_default_interpreter: "{{ ansible_python_interpreter }}"
     ansible_python_interpreter:  "/usr/bin/python"
 
-- name: Read all hosts and set it with index
+- name: set_fact
+  set_fact:
+    all_hosts: "{{ groups['KNOX_GATEWAY'] }}"
+
+- name: Read all knox hosts
   set_fact:
     knox_host_{{ item.0 }} : "{{ item.1 }}"
-  with_indexed_items: "{{ unbound_conf_file | get_all_hosts }}"
+  with_indexed_items: "{{ all_hosts }}"
 
 - name: Install apache server packages
   package:
