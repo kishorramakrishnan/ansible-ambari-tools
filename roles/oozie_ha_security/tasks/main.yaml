@@ -4,6 +4,10 @@
     name: pexpect
   become: yes
 
+- name: get all_hosts
+  set_fact:
+    all_hosts: "{{ unbound_conf_file | get_all_hosts }}"
+
 - name: Fetch Spnego keytabs from all hosts
   fetch:
     src: /etc/security/keytabs/spnego.service.keytab
@@ -12,7 +16,7 @@
   become: yes
   become_user: root
   delegate_to: "{{ item }}"
-  with_items: "{{ unbound_conf_file | get_all_hosts }}"
+  with_items: "{{ all_hosts }}"
 
 - name: Merge keytabs to one super keytab
   run_once: yes
