@@ -1,8 +1,4 @@
 ---
-- name: install pexpect
-  pip:
-    name: pexpect
-  become: yes
 
 - name : STOP KNOX
   debug :
@@ -11,7 +7,16 @@
     - stop knox
   changed_when: true
 
-- name: Fetch Topology files from Knox gateway host
+- name: install pexpect
+  pip:
+    name: pexpect
+  become: yes
+  become_user: root
+  delegate_to: "{{ item }}"
+  with_items: "{{ all_hosts }}"
+
+
+- name: Fetch Topology files from KNox gateway host
   fetch:
     src: "{{ knox_topology_src_dir }}/{{ item }}"
     flat: yes

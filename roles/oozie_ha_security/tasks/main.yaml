@@ -1,12 +1,15 @@
 ---
+- name: get all_hosts
+  set_fact:
+    all_hosts: "{{ unbound_conf_file | get_all_hosts }}"
+
 - name: install pexpect
   pip:
     name: pexpect
   become: yes
-
-- name: get all_hosts
-  set_fact:
-    all_hosts: "{{ unbound_conf_file | get_all_hosts }}"
+  become_user: root
+  delegate_to: "{{ item }}"
+  with_items: "{{ all_hosts }}"
 
 - name: Fetch Spnego keytabs from all hosts
   fetch:
