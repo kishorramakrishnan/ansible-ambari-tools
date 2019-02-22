@@ -1,4 +1,46 @@
 ---
+- hosts: RANGER_ADMIN
+  tasks:
+    - name: Simple Placeholder to capture All ranger hosts
+      debug:
+        var: groups['RANGER_ADMIN']
+      when: install_ranger == true
+
+- hosts: OOZIE_SERVER
+  tasks:
+    - name: Simple Placeholder to capture All Oozie hosts
+      debug:
+        var: groups['OOZIE_SERVER']
+      when: install_oozie == true
+
+- hosts: KNOX_GATEWAY
+  tasks:
+    - name: Simple Placeholder to capture All Knox hosts
+      debug:
+        var: groups['KNOX_GATEWAY']
+      when: install_knox == true
+
+- hosts: localhost
+  tasks:
+    - name: Setup for Ranger HA LB
+      include_role:
+        name: ranger_ha
+      when: install_ranger == true
+
+- hosts: localhost
+  tasks:
+    - name: Setup for Oozie HA LB
+      include_role:
+        name: oozie_ha
+      when: install_oozie == true
+
+- hosts: localhost
+  tasks:
+    - name: Setup for Knox HA LB
+      include_role:
+        name: knox_ha
+      when: install_knox == true
+
 - hosts: localhost
   tasks:
     - name: Security setup for Ranger HA

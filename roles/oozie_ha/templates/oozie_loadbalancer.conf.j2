@@ -7,10 +7,6 @@ Listen {{ oozie_port }}
    <Proxy balancer://{{ cluster_name }}>
                BalancerMember {{ oozie_protocol }}://{{ oozie_host_0 }}:{{ oozie_port }} loadfactor=1 route=1 timeout=5 retry=60
                BalancerMember {{ oozie_protocol }}://{{ oozie_host_1 }}:{{ oozie_port }} loadfactor=1 route=1 timeout=5 retry=60
-               BalancerMember {{ oozie_protocol }}://{{ oozie_host_2 }}:{{ oozie_port }} loadfactor=1 route=1 timeout=5 retry=60
-               BalancerMember {{ oozie_protocol }}://{{ oozie_host_3 }}:{{ oozie_port }} loadfactor=1 route=1 timeout=5 retry=60
-               BalancerMember {{ oozie_protocol }}://{{ oozie_host_4 }}:{{ oozie_port }} loadfactor=1 route=1 timeout=5 retry=60
-               BalancerMember {{ oozie_protocol }}://{{ oozie_host_5 }}:{{ oozie_port }} loadfactor=1 route=1 timeout=5 retry=60
                Order Deny,Allow
                 Deny from none
                 Allow from all
