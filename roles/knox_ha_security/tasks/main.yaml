@@ -1,8 +1,4 @@
 ---
-- name: install pexpect
-  pip:
-    name: pexpect
-  become: yes
 
 - name: simple debug
   shell: ls /var/lib/ambari-server/resources/scripts
@@ -34,6 +30,15 @@
   notify:
     - stop knox
   changed_when: true
+
+- name: install pexpect
+  pip:
+    name: pexpect
+  become: yes
+  become_user: root
+  delegate_to: "{{ item }}"
+  with_items: "{{ all_hosts }}"
+
 
 - name: Fetch Topology files from KNox gateway host
   fetch:

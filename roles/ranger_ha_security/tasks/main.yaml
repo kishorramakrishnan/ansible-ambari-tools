@@ -1,9 +1,4 @@
 ---
-- name: install pexpect
-  pip:
-    name: pexpect
-  become: yes
-
 - name: "Check if service  exists"
   run_once: true
   delegate_to: localhost
@@ -57,6 +52,14 @@
   debug :
     var: all_hosts
     var: loadbalancer_host.stdout
+
+- name: install pexpect
+  pip:
+    name: pexpect
+  become: yes
+  become_user: root
+  delegate_to: "{{ item }}"
+  with_items: "{{ all_hosts }}"
 
 - name: Fetch Spnego keytabs from all hosts
   fetch:
