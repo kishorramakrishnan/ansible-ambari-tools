@@ -85,7 +85,7 @@
     validate_certs: no
     status_code: 200
   register: knox_stop_response
-  delay: '{{ ambari_http_delay }}'
+  delay: 30
   retries: '{{ ambari_http_retries }}'
   until: knox_stop_response.json['Requests']['request_status'] == 'COMPLETED'
   when: knox_stop_request.content
@@ -132,7 +132,7 @@
     validate_certs: no
     status_code: 200
   register: knox_start_response
-  delay: '{{ ambari_http_delay }}'
+  delay: 30
   retries: '{{ ambari_http_retries }}'
   until: knox_start_response.json['Requests']['request_status'] == 'COMPLETED'
   when: knox_start_request.content

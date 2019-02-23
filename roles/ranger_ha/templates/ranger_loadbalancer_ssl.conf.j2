@@ -19,10 +19,6 @@ SSLEngine On
     <Proxy balancer://rangersslcluster>
           BalancerMember {{ ranger_protocol }}://{{ ranger_host_0 }}:{{ ranger_port }} loadfactor=1 route=1 timeout=5 retry=60
           BalancerMember {{ ranger_protocol }}://{{ ranger_host_1 }}:{{ ranger_port }} loadfactor=1 route=1 timeout=5 retry=60
-          BalancerMember {{ ranger_protocol }}://{{ ranger_host_2 }}:{{ ranger_port }} loadfactor=1 route=1 timeout=5 retry=60
-          BalancerMember {{ ranger_protocol }}://{{ ranger_host_3 }}:{{ ranger_port }} loadfactor=1 route=1 timeout=5 retry=60
-          BalancerMember {{ ranger_protocol }}://{{ ranger_host_4 }}:{{ ranger_port }} loadfactor=1 route=1 timeout=5 retry=60
-          BalancerMember {{ ranger_protocol }}://{{ ranger_host_5 }}:{{ ranger_port }} loadfactor=1 route=1 timeout=5 retry=60
                Order Deny,Allow
                 Deny from none
                 Allow from all
