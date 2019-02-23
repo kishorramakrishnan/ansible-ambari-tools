@@ -5,5 +5,3 @@ webserver_service: httpd
 ranger_loadbalancer_template: ranger_loadbalancer.conf.j2
 #For WE clusters
 ranger_ca_cert_dir: /etc/apache2/ssl
-ranger_ca_cert_path: /etc/apache2/ssl/server.crt
-ranger_ca_cert_key_path: /etc/apache2/ssl/server.key
