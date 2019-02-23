@@ -3,7 +3,7 @@ Listen 6182
 <VirtualHost *:6182>
 SSLEngine On
         SSLProxyEngine On
-        SSLCertificateFile {{ ranger_ca_cert_path }}
+        SSLCertificateFile {{ ranger_ca_cert_dir }}/{{ certs_ca_cert }}
         SSLCertificateKeyFile {{ ranger_ca_cert_key_path }}
         SSLCACertificatePath {{ ranger_ca_cert_dir }}
         #SSLCACertificateFile /etc/apache2/ssl/dev.pem

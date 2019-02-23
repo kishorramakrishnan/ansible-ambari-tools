@@ -67,7 +67,7 @@
       -passout "pass:{{ certs_ca_password }}"
   args:
     chdir: "{{ knox_ca_cert_dir }}"
-    creates: "{{ knox_ca_cert_path }}"
+    creates: "{{ certs_ca_cert }}"
   run_once: true
   when: certs_use_local_ca
 

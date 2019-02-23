@@ -12,7 +12,7 @@ Listen 444
 <VirtualHost *:444>
    SSLEngine On
    SSLProxyEngine On
-   SSLCertificateFile {{ knox_ca_cert_path }}
+   SSLCertificateFile {{ knox_ca_cert_dir }}/{{ certs_ca_cert }}
    SSLCertificateKeyFile {{ knox_ca_cert_key_path }}
    SSLCACertificatePath {{ knox_ca_cert_dir }}
    SSLProxyVerify none
