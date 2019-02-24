@@ -1,5 +1,9 @@
 ---
 
+- name: get all_hosts
+  set_fact:
+    all_hosts: "{{ unbound_conf_file | get_all_hosts }}"
+
 - name : STOP KNOX
   debug :
     var: "{{ ansible_fqdn }}"
