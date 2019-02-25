@@ -1,4 +1,16 @@
 ---
+- name: get all_hosts
+  set_fact:
+    all_hosts: "{{ unbound_conf_file | get_all_hosts }}"
+
+- name: install pexpect
+  pip:
+    name: pexpect
+  become: yes
+  become_user: root
+  delegate_to: "{{ item }}"
+  with_items: "{{ all_hosts }}"
+
 - name: Invoke wire encryption for atlas
   include_role:
     name: certs
