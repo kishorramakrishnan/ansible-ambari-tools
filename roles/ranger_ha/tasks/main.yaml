@@ -37,7 +37,7 @@
 
 - name: Check that the WE directory for ranger exists
   stat:
-    path: "/opt/scripts/pre-ambari-start/{{ cluster_name }}-all-setup-wireencryption-sh-pre-ambari-start"
+    path: "/etc/wire_encryption/ranger/"
   register: is_ranger_we
   become: yes
   become_user: root
