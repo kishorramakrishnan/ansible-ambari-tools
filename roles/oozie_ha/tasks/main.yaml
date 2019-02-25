@@ -47,15 +47,16 @@
   become_user: root
 
 - name: create symlinks to enabled virtual hosts
-  command: sudo ln -s /etc/{{ webserver_service }}/sites-available/{{ domain }}.conf /etc/{{ webserver_service }}/sites-enabled/{{ domain }}.conf
-  become: yes
-  become_user: root
+  file:
+    src: "/etc/{{ webserver_service }}/sites-available/{{ domain }}.conf"
+    dest: "/etc/{{ webserver_service }}/sites-enabled/{{ domain }}.conf"
+    state: link
 
 - name: Append conf in httpd.conf file
   become: yes
   become_user: root
   lineinfile:
-    path: /etc/{{ webserver_service }}/conf/{{ webserver_service }}.conf
+    path: "/etc/{{ webserver_service }}/conf/{{ webserver_service }}.conf"
     line: IncludeOptional sites-enabled/*.conf
   notify:
-    - restart httpd
+    - restart {{ webserver_service }}
