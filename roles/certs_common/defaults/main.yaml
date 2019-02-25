@@ -17,3 +17,6 @@ certs_ca_key: ca.key
 certs_ca_days: 365
 certs_ca_sign_days: 365
 certs_ca_subject: "/C=US/ST=CA/L=Santa Clara/O=Hortonworks/OU=Engineering/CN={{ certs_ca_alias }}"
+
+#Used across HDP WE setup configs
+unbound_conf_file: /etc/unbound/conf.d/00-cluster.conf
