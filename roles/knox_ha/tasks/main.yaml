@@ -3,22 +3,16 @@
     ansible_python_default_interpreter: "{{ ansible_python_interpreter }}"
     ansible_python_interpreter:  "/usr/bin/python"
 
-- name: simple debug
-  debug: var=knox_protocol
-
 - name: set_fact
   set_fact:
     all_hosts: "{{ groups['KNOX_GATEWAY'] }}"
 
-- name: dynamic hosts
+- name: Read all hosts and set it with index
   set_fact:
     knox_host_{{ item.0 }} : "{{ item.1 }}"
   with_indexed_items: "{{ all_hosts }}"
 
-- name: simple debug
-  debug: var=all_hosts
-
-- name: Install apache packages
+- name: Install apache server packages
   package:
     name: "{{ webserver_service }}"
     state: present
@@ -27,10 +21,19 @@
 
 - name: Install apache module packages
   package:
-    name: openssl-devel, gcc-c++, glibc-headers, glibc-devel, glibc, kernel-headers, openldap-devel, mod_ssl
+    name: {{ item }}
     state: present
   become: yes
   become_user: root
+  with_items:
+    - openssl-devel
+    - gcc-c++
+    - glibc-headers
+    - glibc-devel
+    - glibc
+    - kernel-headers
+    - openldap-devel
+    - mod_ssl
 
 - name: create directory for Knox certificates
   become: true
@@ -41,7 +44,7 @@
     group: root
     mode: 0755
 
-- name: Replace the prt conflicts in the httpd ssl conf
+- name: Replace the port conflicts in the httpd ssl conf
   replace:
     dest: /etc/httpd/conf.d/ssl.conf
     regexp: '443'

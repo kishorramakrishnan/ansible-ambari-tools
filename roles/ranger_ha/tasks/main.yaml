@@ -7,13 +7,10 @@
   set_fact:
     all_hosts: "{{ groups['RANGER_ADMIN'] }}"
 
-- name: dynamic hosts
+- name: Read all hosts and set it with index
   set_fact:
     ranger_host_{{ item.0 }} : "{{ item.1 }}"
   with_indexed_items: "{{ all_hosts }}"
-
-- name: simple debug
-  debug: var=all_hosts
 
 - name: Install apache packages
   package:

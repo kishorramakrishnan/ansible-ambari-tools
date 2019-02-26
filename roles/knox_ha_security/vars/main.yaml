@@ -1,4 +1,8 @@
-ranger_protocol: http
-ranger_port: 6080
-domain: example.com
+knox_protocol: https
+knox_port: 8443
+domain: knoxexample.com
 webserver_service: httpd
+knox_topology_src_dir: /usr/hdp/current/knox-server/conf/topologies
+knox_security_keystore_dir: /usr/hdp/current/knox-server/data/security/keystores
+knox_topology_dir: /etc/knox/conf/topologies/
+unbound_conf_file: /etc/unbound/conf.d/00-cluster.conf

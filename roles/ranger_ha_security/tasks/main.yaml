@@ -1,4 +1,9 @@
 ---
+- name: install pexpect
+  pip:
+    name: pexpect
+  become: yes
+
 - name: "Check if service  exists"
   run_once: true
   delegate_to: localhost
@@ -14,52 +19,10 @@
   register: service_check
   with_items: "{{ plugin_services }}"
 
-- name : debug status code
-  set_fact:
-    install_{{ item.item }}: "{{ ( item.status == 200) }}"
-  with_items: "{{ service_check.results | list }}"
-
-- name : debug install status
+- name : Log services installed
   debug:
     var: install_{{ item }}
   with_items: "{{ plugin_services }}"
-
-- name: simple debug
-  shell: ls /var/lib/ambari-server/resources/scripts
-  become_user: root
-  delegate_to: "{{ ambari_host }}"
-  register: scripts
-
-- name: simple deug step2
-  debug:
-    var: scripts.stdout
-
-- name: read yml
-  shell: 'cat /etc/unbound/conf.d/00-cluster.conf | grep \.local-data-ptr | sed "s/\"/ /g" | cut -d ":" -f2- | cut -d " " -f 4'
-  register: local_hosts
-  become: yes
-  become_user: root
-
-- name: get all_hosts
-  set_fact:
-    all_hosts: "{{ local_hosts.stdout_lines | list }}"
-
-- name: get loadbalancer host name
-  shell: "hostname -f"
-  register: loadbalancer_host
-
-- name : debug
-  debug :
-    var: all_hosts
-    var: loadbalancer_host.stdout
-
-- name: install pexpect
-  pip:
-    name: pexpect
-  become: yes
-  become_user: root
-  delegate_to: "{{ item }}"
-  with_items: "{{ all_hosts }}"
 
 - name: Fetch Spnego keytabs from all hosts
   fetch:
@@ -69,7 +32,7 @@
   become: yes
   become_user: root
   delegate_to: "{{ item }}"
-  with_items: "{{ all_hosts }}"
+  with_items: "{{ unbound_conf_file | get_all_hosts }}"
 
 - name: Merge keytabs to one super keytab
   run_once: yes
@@ -99,7 +62,7 @@
   set_fact:
     ranger_protocol: http
     ranger_port: 6080
-    ranger_loadbalancer: "{{ loadbalancer_host.stdout }}"
+    ranger_loadbalancer: "{{ ansible_fqdn }}"
     ambari_port: 8080
     ambari_protocol : http
 

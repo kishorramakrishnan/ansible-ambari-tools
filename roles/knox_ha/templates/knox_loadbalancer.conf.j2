@@ -26,8 +26,8 @@ Listen 444
    RequestHeader set X-Forwarded-Port "444"
    Header add Set-Cookie "ROUTEID=.%{BALANCER_WORKER_ROUTE}e; path=/" env=BALANCER_ROUTE_CHANGED
    <Proxy balancer://{{ cluster_name }}>
-    BalancerMember {{ knox_protocol }}://{{ knox_host_0 }}:{{ knox_port }} loadfactor=1 route=1 timeout=5 retry=60
-    BalancerMember {{ knox_protocol }}://{{ knox_host_1 }}:{{ knox_port }} loadfactor=1 route=1 timeout=5 retry=60
+    BalancerMember {{ knox_protocol }}://{{ knox_host_0 }}:{{ knox_port }} loadfactor=1 route=1
+    BalancerMember {{ knox_protocol }}://{{ knox_host_1 }}:{{ knox_port }} loadfactor=1 route=1
      ProxySet failontimeout=On lbmethod=byrequests stickysession=ROUTEID
    </Proxy>
 

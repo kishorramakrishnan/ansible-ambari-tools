@@ -2,6 +2,7 @@ ranger_protocol: http
 ranger_port: 6080
 domain: example.com
 webserver_service: httpd
+unbound_conf_file: /etc/unbound/conf.d/00-cluster.conf
 plugin_services:
      - hive
      - hbase

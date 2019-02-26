@@ -1,48 +1,21 @@
 ---
-
-- name: simple debug
-  shell: ls /var/lib/ambari-server/resources/scripts
-  become_user: root
-  delegate_to: "{{ ambari_host }}"
-  register: scripts
-
-- name: simple deug step2
-  debug:
-    var: scripts.stdout
-
-- name: read yml
-  shell: 'cat /etc/unbound/conf.d/00-cluster.conf | grep \.local-data-ptr | sed "s/\"/ /g" | cut -d ":" -f2- | cut -d " " -f 4'
-  register: local_hosts
-  become: yes
-  become_user: root
-
-- name: get all_hosts
-  set_fact:
-    all_hosts: "{{ local_hosts.stdout_lines | list }}"
-
-- name: get loadbalancer host name
-  shell: "hostname -f"
-  register: loadbalancer_host
-
-- name : STOP KNOX
-  debug :
-    var: all_hosts
-  notify:
-    - stop knox
-  changed_when: true
-
 - name: install pexpect
   pip:
     name: pexpect
   become: yes
-  become_user: root
   delegate_to: "{{ item }}"
-  with_items: "{{ all_hosts }}"
+  with_items: "{{ unbound_conf_file | get_all_hosts }}"
 
+- name : STOP KNOX
+  debug :
+    var: {{ ansible_fqdn }}
+  notify:
+    - stop knox
+  changed_when: true
 
-- name: Fetch Topology files from KNox gateway host
+- name: Fetch Topology files from Knox gateway host
   fetch:
-    src: "/usr/hdp/current/knox-server/conf/topologies/{{ item }}"
+    src: "{{ knox_topology_src_dir }}/{{ item }}"
     flat: yes
     dest: "/knox_temp/"
     remote_src: yes
@@ -57,7 +30,7 @@
 
 - name: Fetch keystore files from Knox gateway host
   fetch:
-    src: "/usr/hdp/current/knox-server/data/security/keystores/{{ item }}"
+    src: "{{ knox_security_keystore_dir }}/{{ item }}"
     flat: yes
     dest: "/knox_temp/"
   become: yes
@@ -81,7 +54,8 @@
   become_user: root
   copy:
     src: "/knox_temp/{{ item }}"
-    dest: "/etc/knox/conf/topologies/"
+    dest: "{{ knox_topology_dir }}"
+    mode: 550
     group: hadoop
   with_items:
     - admin.xml
@@ -94,7 +68,8 @@
   become_user: root
   copy:
     src: "/knox_temp/{{ item }}"
-    dest: "/usr/hdp/current/knox-server/data/security/keystores/"
+    dest: "{{ knox_security_keystore_dir }}/"
+    mode: 550
     group: hadoop
   with_items:
     - admin-credentials.jceks
@@ -102,11 +77,9 @@
     - knoxsso-credentials.jceks
     - manager-credentials.jceks
 
-
-
 - name : START KNOX
   debug :
-    var: all_hosts
+    var: {{ ansible_fqdn }}
   notify:
     - start knox
   changed_when: true

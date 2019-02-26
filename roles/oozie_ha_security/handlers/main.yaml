@@ -41,7 +41,7 @@
     validate_certs: no
     status_code: 200
   register: ambari_restart_response
-  delay: 30
+  delay: '{{ ambari_http_delay }}'
   retries: '{{ ambari_http_retries }}'
   until: ambari_restart_response.json['Requests']['request_status'] == 'COMPLETED'
   when: ambari_restart_request.content

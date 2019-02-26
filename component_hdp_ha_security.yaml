@@ -40,24 +40,3 @@
       include_role:
         name: knox_ha
       when: install_knox == true
-
-- hosts: localhost
-  tasks:
-    - name: Security setup for Ranger HA
-      include_role:
-        name: ranger_ha_security
-      when: install_ranger == true
-
-- hosts: localhost
-  tasks:
-    - name: Security setup for Oozie HA
-      include_role:
-        name: oozie_ha_security
-      when: install_oozie == true
-
-- hosts: KNOX_GATEWAY
-  tasks:
-    - name: Security setup for Knox HA
-      include_role:
-        name: knox_ha_security
-      when: install_knox == true
