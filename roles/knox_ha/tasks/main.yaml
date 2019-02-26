@@ -115,5 +115,8 @@
   lineinfile:
     path: "/etc/{{ webserver_service }}/conf/{{ webserver_service }}.conf"
     line: IncludeOptional sites-enabled/*.conf
-  notify:
-    - restart {{ webserver_service }}
+
+- name: Restart web service
+  service: name={{ webserver_service }} state=restarted
+  become: yes
+  become_user: root
