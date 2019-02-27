@@ -4,7 +4,7 @@ def get_all_hosts(unbound_file):
     all_hosts = []
     with open(unbound_file) as ub_file:
         content = ub_file.read()
-        regex = r'([\"a-z0-9]: *) +"+([0-9.  ]*) ([a-z-0-9]+)'
+        regex = r'([\"a-z0-9]: *) +"+([0-9.  ]*) ([a-z-0-9.]+)'
         matches = re.findall(regex, content)
         for match in matches:
             all_hosts.append(match[2])
