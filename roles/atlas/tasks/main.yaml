@@ -45,7 +45,7 @@
   template:
     src: password_gen.j2
     dest: /etc/atlas/conf/password_gen
-    mode: 755
+    mode: 0755
   become: yes
   become_user: root
 
@@ -57,7 +57,7 @@
 - name: Set right permission for atlas jceks files
   file:
     path: "{{ item }}"
-    mode: 444
+    mode: 0444
     owner: atlas
     group: hadoop
   loop:

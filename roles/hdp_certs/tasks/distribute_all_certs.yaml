@@ -34,7 +34,7 @@
     owner: root
     group: hadoop
     recurse: yes
-    mode: 755
+    mode: 0755
   delegate_to: "{{ item[1] }}"
   with_nested:
     - [ "{{ server_certs_dir }}", "{{ client_certs_dir }}"]
@@ -48,7 +48,7 @@
     dest: "{{ item }}"
     owner: root
     group: hadoop
-    mode: 440
+    mode: 0440
   with_items:
     - "{{ client_certs_dir }}/{{ all_jks_file }}"
     - "{{ server_certs_dir }}/{{ cert_pub_key }}"

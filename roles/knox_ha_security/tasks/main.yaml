@@ -62,7 +62,7 @@
   copy:
     src: "/knox_temp/{{ item }}"
     dest: "{{ knox_topology_dir }}"
-    mode: 550
+    mode: 0550
     group: hadoop
   with_items:
     - admin.xml
@@ -76,7 +76,7 @@
   copy:
     src: "/knox_temp/{{ item }}"
     dest: "{{ knox_security_keystore_dir }}/"
-    mode: 550
+    mode: 0550
     group: hadoop
   with_items:
     - admin-credentials.jceks
