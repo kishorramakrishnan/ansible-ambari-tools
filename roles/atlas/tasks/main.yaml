@@ -63,6 +63,8 @@
   loop:
     - "{{ passwdFileLocationActualPath }}"
     - "{{ passwdCrcFileLocation }}"
+  become: yes
+  become_user: root
 
 - name: Save SSL configs for Atlas
   include_role:
