@@ -1,10 +1,15 @@
 ---
+- name: read all hosts
+  set_fact:
+    all_hosts : "{{ unbound_conf_file | get_all_hosts }}"
+
 - name: install pexpect
   pip:
     name: pexpect
   become: yes
+  become_user: root
   delegate_to: "{{ item }}"
-  with_items: "{{ unbound_conf_file | get_all_hosts }}"
+  with_items: "{{ all_hosts }}"
 
 - name : STOP KNOX
   debug :
@@ -55,7 +60,7 @@
   copy:
     src: "/knox_temp/{{ item }}"
     dest: "{{ knox_topology_dir }}"
-    mode: 550
+    mode: 0550
     group: hadoop
   with_items:
     - admin.xml
@@ -69,7 +74,7 @@
   copy:
     src: "/knox_temp/{{ item }}"
     dest: "{{ knox_security_keystore_dir }}/"
-    mode: 550
+    mode: 0550
     group: hadoop
   with_items:
     - admin-credentials.jceks
