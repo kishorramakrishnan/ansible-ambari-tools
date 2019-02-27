@@ -11,6 +11,15 @@
   delegate_to: "{{ item }}"
   with_items: "{{ all_hosts }}"
 
+- name: Install expect packages for atlas
+  package:
+    name: expect
+    state: present
+  become: yes
+  become_user: root
+  delegate_to: "{{ item }}"
+  with_items: "{{ all_hosts }}"
+
 - name: Invoke wire encryption for atlas
   include_role:
     name: certs
@@ -41,7 +50,7 @@
   become_user: root
 
 - name: Execute the script
-  command: sh /etc/atlas/conf/password_gen
+  command: /etc/atlas/conf/password_gen
   become: yes
   become_user: root
 
