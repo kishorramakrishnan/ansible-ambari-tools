@@ -21,7 +21,7 @@
 
 - name: Install apache module packages
   package:
-    name: {{ item }}
+    name: "{{ item }}"
     state: present
   become: yes
   become_user: root
