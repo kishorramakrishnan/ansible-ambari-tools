@@ -13,7 +13,7 @@
 
 - name : STOP KNOX
   debug :
-    var: {{ ansible_fqdn }}
+    var: "{{ ansible_fqdn }}"
   notify:
     - stop knox
   changed_when: true
@@ -84,7 +84,7 @@
 
 - name : START KNOX
   debug :
-    var: {{ ansible_fqdn }}
+    var: "{{ ansible_fqdn }}"
   notify:
     - start knox
   changed_when: true
