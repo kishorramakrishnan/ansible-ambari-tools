@@ -116,8 +116,8 @@
   command: >
     openssl x509
       -req
-      -in {{ ranger_ca_cert_dir }}/{{ ranger_ssl_csr }}"
-      -out {{ ranger_ca_cert_dir }}/{{ ranger_ssl_cert }}"
+      -in "{{ ranger_ca_cert_dir }}/{{ ranger_ssl_csr }}"
+      -out "{{ ranger_ca_cert_dir }}/{{ ranger_ssl_cert }}"
       -days "{{ certs_ca_sign_days }}"
       -CA "{{ certs_ca_cert }}"
       -CAkey "{{ certs_ca_key }}"
