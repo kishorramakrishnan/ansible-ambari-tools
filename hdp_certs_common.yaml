@@ -3,7 +3,15 @@
   tasks:
    - name: get all_hosts
      set_fact:
-       all_hosts: '{{ "/etc/unbound/conf.d/00-cluster.conf" | get_all_hosts }}'
+       all_hosts: "{{ unbound_conf_file | get_all_hosts }}"
+
+   - name: install pexpect
+     pip:
+       name: pexpect
+     become: yes
+     become_user: root
+     delegate_to: "{{ item }}"
+     with_items: "{{ all_hosts }}"
 
    - name: set all hosts
      add_host:

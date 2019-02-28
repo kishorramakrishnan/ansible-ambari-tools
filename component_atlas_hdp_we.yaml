@@ -1,4 +1,4 @@
 ---
 - hosts: ATLAS_SERVER
   roles:
-    - { name: atlas, when: install_atlas == true }
+    - { name: atlas, tasks_from: main, when: install_atlas == true }
