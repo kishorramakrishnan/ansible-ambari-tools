@@ -1,5 +1,5 @@
-atlas_application-properties_config_type : application-properties
-atlas_application-properties_config_props:
+atlas_application_properties_config_type : application-properties
+atlas_application_properties_config_props:
   atlas.enableTLS:
     value: "true"
   cert.stores.credential.provider.path:

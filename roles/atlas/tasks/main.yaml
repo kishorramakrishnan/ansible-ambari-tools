@@ -70,8 +70,8 @@
   include_role:
     name: ambari_configure_service
   vars:
-    ambari_component_section_name: "{{ atlas_application-properties_config_type }}"
-    ambari_component_props: "{{ atlas_application-properties_config_props }}"
+    ambari_component_section_name: "{{ atlas_application_properties_config_type }}"
+    ambari_component_props: "{{ atlas_application_properties_config_props }}"
 
 - name: Save SSL configs for Atlas-Ranger Plugin
   include_role:
