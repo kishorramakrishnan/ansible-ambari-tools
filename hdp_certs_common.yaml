@@ -10,8 +10,6 @@
        name: pexpect
      become: yes
      become_user: root
-     delegate_to: "{{ item }}"
-     with_items: "{{ all_hosts }}"
 
    - name: set all hosts
      add_host:
