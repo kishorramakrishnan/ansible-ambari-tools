@@ -69,4 +69,10 @@
 - import_playbook: component_atlas_hdp_we.yaml
   tags:
     - atlas
+    - hdp
+    - pre_deploy
+
+- import_playbook: component_atlas_hdp_we_postdeploy.yaml
+  tags:
+    - atlas
     - post_deploy

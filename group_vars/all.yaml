@@ -9,3 +9,7 @@ certs_ca_password: changeit
 java_jks_store_password: changeit
 
 ansible_user: cloudbreak
+#Used across HDP WE setup configs
+unbound_conf_file: /etc/unbound/conf.d/00-cluster.conf
+
+

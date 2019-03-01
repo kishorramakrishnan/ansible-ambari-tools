@@ -6,3 +6,6 @@ ranger_loadbalancer_template: ranger_loadbalancer.conf.j2
 #For WE clusters
 unbound_conf_file: /etc/unbound/conf.d/00-cluster.conf
 ranger_ca_cert_dir: /etc/apache2/ssl
+ranger_ssl_key: loadbalancer.key
+ranger_ssl_csr: loadbalancer.csr
+ranger_ssl_cert: loadbalancer.cert

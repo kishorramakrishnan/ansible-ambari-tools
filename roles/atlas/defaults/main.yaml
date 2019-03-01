@@ -9,15 +9,4 @@ atlas_application_properties_config_props:
   truststore.file:
     value: "{{ certs_dir }}/{{ certs_jks_file }}"
   atlas.rest.address:
-    value: "{{ ambari_component_configs['application-properties']['atlas.rest.address']|string | replace('http','https') | replace('21000','21443') }} "
-
-atlas_ranger_plugin_config_type: ranger-atlas-policymgr-ssl
-atlas_ranger_plugin_config_props:
-  xasecure.policymgr.clientssl.keystore:
-    value: "/etc/wire_encryption/atlas/ranger-plugin.jks"
-  xasecure.policymgr.clientssl.keystore.password:
-    value: "changeit"
-  xasecure.policymgr.clientssl.truststore:
-    value: "/etc/wire_encryption/ranger-plugin-truststore.jks"
-  xasecure.policymgr.clientssl.truststore.password:
-    value: "changeit"
+    value: "{{ ambari_component_configs['application-properties']['atlas.rest.address']|string | replace('http:','https:') | replace('21000','21443') }} "

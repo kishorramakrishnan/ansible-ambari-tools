@@ -76,35 +76,74 @@
   become_user: root
   when: is_ranger_we.stat.exists == true
 
-- name: create root CA certificate (local)
+- name: create private key for SSL cert
   command: >
-    openssl req
-      -new
-      -x509
-      -sha256
-      -newkey "rsa:2048"
-      -subj "{{ certs_ca_subject }}"
-      -keyout "{{ certs_ca_key }}"
-      -out "{{ certs_ca_cert }}"
-      -days "{{ certs_ca_days }}"
-      -passin "pass:{{ certs_ca_password }}"
-      -passout "pass:{{ certs_ca_password }}"
+    openssl genrsa
+      -out "{{ ranger_ssl_key }}" 2048
   args:
     chdir: "{{ ranger_ca_cert_dir }}"
-    creates: "{{ certs_ca_cert }}"
+    creates: "{{ ranger_ssl_key }}"
   run_once: true
   when: is_ranger_we.stat.exists == true
+  become: yes
+  become_user: root
+
+- name: create the csr and key for loadbalancer cert
+  command: >
+    openssl req
+      -nodes
+      -newkey rsa:2048
+      -keyout "{{ ranger_ssl_key }}"
+      -out "{{ ranger_ssl_csr }}"
+      -subj "{{ certs_ca_subject }}"
+  args:
+    chdir: "{{ ranger_ca_cert_dir }}"
+    creates: "{{ ranger_ssl_csr }}"
+  run_once: true
+  when: certs_use_local_ca
+  become: yes
+  become_user: root
+
+- name: create openssl config to include SAN (SubjectAlternativeNames)
+  template:
+    src: san.cnf.j2
+    dest: "{{ ranger_ca_cert_dir }}/san_{{ ansible_fqdn }}.cnf"
+  become: yes
+  become_user: root
+
+- name: sign certificate requests (local)
+  delegate_to: localhost
+  command: >
+    openssl x509
+      -req
+      -in "{{ ranger_ca_cert_dir }}/{{ ranger_ssl_csr }}"
+      -out "{{ ranger_ca_cert_dir }}/{{ ranger_ssl_cert }}"
+      -days "{{ certs_ca_sign_days }}"
+      -CA "{{ certs_ca_cert }}"
+      -CAkey "{{ certs_ca_key }}"
+      -CAcreateserial
+      -passin "pass:{{ certs_ca_password }}"
+      -extensions v3_req
+      -extfile "{{ ranger_ca_cert_dir }}/san_{{ ansible_fqdn }}.cnf"
+  args:
+    chdir: "{{ certs_local_dir }}"
+    creates: "{{ ranger_ca_cert_dir }}/{{ ranger_ssl_cert }}"
+  when: certs_use_local_ca
+  become: yes
+  become_user: root
 
 - name: Removing the passphrase from the private key
   command: >
     openssl rsa
-      -in "{{ certs_ca_key }}"
-      -out "{{ certs_ca_key }}"
+      -in "{{ ranger_ssl_key }}"
+      -out "{{ ranger_ssl_key }}"
       -passin "pass:{{ certs_ca_password }}"
   args:
     chdir: "{{ ranger_ca_cert_dir }}"
   run_once: true
   when: is_ranger_we.stat.exists == true
+  become: yes
+  become_user: root
 
 - name: Creates sites-enabled directory
   file:
@@ -131,5 +170,8 @@
   lineinfile:
     path: "/etc/{{ webserver_service }}/conf/{{ webserver_service }}.conf"
     line: IncludeOptional sites-enabled/*.conf
-  notify:
-    - restart {{ webserver_service }}
+
+- name: restart {{ webserver_service }}
+  service: name={{ webserver_service }} state=restarted
+  become: yes
+  become_user: root

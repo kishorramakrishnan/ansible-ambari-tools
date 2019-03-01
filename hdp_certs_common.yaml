@@ -3,7 +3,13 @@
   tasks:
    - name: get all_hosts
      set_fact:
-       all_hosts: '{{ "/etc/unbound/conf.d/00-cluster.conf" | get_all_hosts }}'
+       all_hosts: "{{ unbound_conf_file | get_all_hosts }}"
+
+   - name: install pexpect
+     pip:
+       name: pexpect
+     become: yes
+     become_user: root
 
    - name: set all hosts
      add_host:
@@ -22,3 +28,39 @@
          - HIVE_SERVER
          - SPARK_THRIFTSERVER
      with_items: "{{ all_hosts }}"
+
+   - name: Get ambari java home
+     run_once: true
+     local_action:
+       module: set_fact
+       java_home: '{{ "/etc/ambari-server/conf/ambari.properties" | get_ambari_java_home }}'
+
+   - name: set CA cert path and all hosts
+     local_action:
+       module: set_fact
+       java_ca_cert_path: "{{ java_home }}/jre/lib/security/cacerts"
+
+   - name: Set Ambari truststore
+     run_once: true
+     local_action:
+       module: expect
+       command: ambari-server setup-security
+       responses:
+         (?i)Enter choice(.*): '4'
+         (?i)Do you want to configure a truststore(.*): 'y'
+         (?i)TrustStore type(.*): 'jks'
+         (?i)Path to TrustStore(.*): "{{ java_ca_cert_path }}"
+         (?i)Password for TrustStore(.*): "{{ java_jks_store_password }}"
+         (?i)Re-enter password(.*): "{{ java_jks_store_password }}"
+     register: ambari_trusstore_setup
+
+   - name: Log Ambari-server setup output
+     run_once: true
+     local_action:
+       module: debug
+       var: ambari_trusstore_setup.stdout
+
+   - name: Restart ambari-server
+     run_once: true
+     delegate_to: localhost
+     command: ambari-server restart
