@@ -59,3 +59,8 @@
      local_action:
        module: debug
        var: ambari_trusstore_setup.stdout
+
+   - name: Restart ambari-server
+     run_once: true
+       local_action:
+       command: ambari-server restart
