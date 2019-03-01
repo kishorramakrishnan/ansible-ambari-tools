@@ -62,5 +62,5 @@
 
    - name: Restart ambari-server
      run_once: true
-       local_action:
+     delegate_to: localhost
        command: ambari-server restart
