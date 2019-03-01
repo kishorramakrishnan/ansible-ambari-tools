@@ -41,6 +41,7 @@
        java_ca_cert_path: "{{ java_home }}/jre/lib/security/cacerts"
 
    - name: Set Ambari truststore
+     run_once: true
      local_action:
        module: expect
        command: ambari-server setup-security
@@ -54,6 +55,7 @@
      register: ambari_trusstore_setup
 
    - name: Log Ambari-server setup output
+     run_once: true
      local_action:
        module: debug
        var: ambari_trusstore_setup.stdout
