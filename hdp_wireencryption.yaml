@@ -5,7 +5,6 @@
   tags:
     - hdp
     - pre_deploy
-    - post_deploy
 
 - import_playbook: component_hdfs_hdp_we.yaml
   tags:
