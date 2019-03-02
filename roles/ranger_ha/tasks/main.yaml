@@ -100,7 +100,7 @@
     chdir: "{{ ranger_ca_cert_dir }}"
     creates: "{{ ranger_ssl_csr }}"
   run_once: true
-  when: certs_use_local_ca
+  when: is_ranger_we.stat.exists == true
   become: yes
   become_user: root
 
@@ -128,7 +128,7 @@
   args:
     chdir: "{{ certs_local_dir }}"
     creates: "{{ ranger_ca_cert_dir }}/{{ ranger_ssl_cert }}"
-  when: certs_use_local_ca
+  when: is_ranger_we.stat.exists == true
   become: yes
   become_user: root
 
