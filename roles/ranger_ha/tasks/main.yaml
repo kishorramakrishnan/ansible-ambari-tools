@@ -110,6 +110,7 @@
     dest: "{{ ranger_ca_cert_dir }}/san_{{ ansible_fqdn }}.cnf"
   become: yes
   become_user: root
+  when: is_ranger_we.stat.exists == true
 
 - name: sign certificate requests (local)
   delegate_to: localhost
