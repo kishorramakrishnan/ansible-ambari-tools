@@ -19,3 +19,24 @@
   become: yes
   become_user: root
   when: install_ranger == true
+
+- name: Get ambari java home
+  run_once: true
+  local_action:
+    module: set_fact
+    java_home: '{{ "/etc/ambari-server/conf/ambari.properties" | get_ambari_java_home }}'
+
+- name: set CA cert path and all hosts
+  local_action:
+    module: set_fact
+    java_ca_cert_path: "{{ java_home }}/jre/lib/security/cacerts"
+
+- name: Add HDFS certs to ambari trusstore
+  delegate_to: localhost
+  command: >
+    keytool -import
+    -file "{{ certs_dir }}/ca.crt"
+    -keystore "{{ java_ca_cert_path }}"
+    -alias hdfs
+    -storepass "{{ java_jks_store_password }}"
+    -noprompt
