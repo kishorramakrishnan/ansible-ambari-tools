@@ -19,6 +19,13 @@
   become: yes
   become_user: root
 
+- name: Check that the WE directory for ranger exists
+  stat:
+    path: "/etc/wire_encryption/ranger/"
+  register: is_ranger_we
+  become: yes
+  become_user: root
+
 - name: Install apache module packages
   package:
     name: "{{ item }}"
@@ -35,13 +42,6 @@
     - openldap-devel
     - mod_ssl
   when: is_ranger_we.stat.exists == true
-
-- name: Check that the WE directory for ranger exists
-  stat:
-    path: "/etc/wire_encryption/ranger/"
-  register: is_ranger_we
-  become: yes
-  become_user: root
 
 - name: set properties accordingly if ranger WE is ON
   set_fact:
