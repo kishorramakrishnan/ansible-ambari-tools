@@ -1,0 +1,8 @@
+---
+- name: Invoke wire encryption for ranger kms
+  include_role:
+    name: certs
+  vars:
+    component_prefix: rangerkms
+  become: yes
+  become_user: root

@@ -1,0 +1,4 @@
+---
+- hosts: RANGER_KMS_SERVER
+  roles:
+    - { name: kms, when: install_kms == true }

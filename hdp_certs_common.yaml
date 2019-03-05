@@ -27,6 +27,7 @@
          - OOZIE_SERVER
          - HIVE_SERVER
          - SPARK_THRIFTSERVER
+         - RANGER_KMS_SERVER
      with_items: "{{ all_hosts }}"
 
    - name: Get ambari java home

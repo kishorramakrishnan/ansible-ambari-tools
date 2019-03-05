@@ -65,6 +65,12 @@
     - hdp
     - pre_deploy
 
+- import_playbook: component_rangerkms_hdp_we.yaml
+  tags:
+    - rangerkms
+    - hdp
+    - pre_deploy
+
 - import_playbook: component_atlas_hdp_we.yaml
   tags:
     - atlas
