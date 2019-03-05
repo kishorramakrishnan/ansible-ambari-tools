@@ -27,12 +27,14 @@
     java_home: '{{ "/etc/ambari-server/conf/ambari.properties" | get_ambari_java_home }}'
 
 - name: set CA cert path and all hosts
+  run_once: true
   local_action:
     module: set_fact
     java_ca_cert_path: "{{ java_home }}/jre/lib/security/cacerts"
 
 - name: Add HDFS certs to ambari trusstore
   delegate_to: localhost
+  run_once: true
   command: >
     keytool -import
     -file "{{ certs_dir }}/ca.crt"
