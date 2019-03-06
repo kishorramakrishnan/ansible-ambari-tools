@@ -5,8 +5,8 @@ SSLEngine On
         SSLProxyEngine On
         SSLCertificateFile {{ ranger_ca_cert_dir }}/{{ ranger_ssl_cert }}
         SSLCertificateKeyFile {{ ranger_ca_cert_dir }}/{{ ranger_ssl_key }}
-        SSLCACertificatePath {{ ranger_ca_cert_dir }}
-        #SSLCACertificateFile /etc/apache2/ssl/dev.pem
+        SSLCACertificatePath {{ certs_dir }}
+        SSLCACertificateFile {{ certs_dir }}/{{ certs_ca_cert }}
         SSLVerifyClient optional
         SSLOptions +ExportCertData
         SSLProxyVerify none
