@@ -10,4 +10,3 @@ knox_port: 8443
 domain: knoxexample.com
 webserver_service: httpd
 knox_ca_cert_dir: /usr/local/apache2/ssl/
-unbound_conf_file: /etc/unbound/conf.d/00-cluster.conf
