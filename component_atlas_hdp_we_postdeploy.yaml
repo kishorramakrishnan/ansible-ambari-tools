@@ -1,4 +1,8 @@
 ---
 - hosts: ATLAS_SERVER
-  roles:
-    - { name: atlas, tasks_from : post_deploy, when: install_atlas == true }
+  tasks:
+  - name: include role
+    import_role:
+      name: atlas
+      tasks_from : post_deploy
+    when: install_atlas == true
