@@ -50,12 +50,29 @@
     oozie_loadbalancer: "{{ ansible_fqdn }}"
     ambari_port: 8080
     ambari_protocol : http
+    
+- name: Check that the WE directory for oozie exists
+  stat:
+    path: "/etc/wire_encryption/oozie/"
+  register: is_oozie_we
+  become: yes
+  become_user: root
+
+- name: set all configs for oozie HA modification
+  set_fact:
+    oozie_protocol: https
+    oozie_port: 11443
+    oozie_loadbalancer: "{{ ansible_fqdn }}"
+    ambari_port: 8080
+    ambari_protocol : http
+  when: is_oozie_we.stat.exists == true
+  delegate_to: localhost
 
 - name: set Oozie url as loadbalancer url
   set_fact:
     oozie_url: "{{ oozie_protocol }}://{{ oozie_loadbalancer }}:{{ oozie_port }}/oozie"
 
-- name: Invoke Ambari config role, to save configs for Kafka
+- name: Invoke Ambari config role, to save configs for Oozie
   import_role:
     name: ambari_configure_service
   vars:
