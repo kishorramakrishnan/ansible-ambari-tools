@@ -3,3 +3,9 @@ oozie_port: 11000
 domain: oozieexample.com
 webserver_service: httpd
 
+certs_dir: /etc/wire_encryption/oozie
+oozie_ca_cert_dir: /etc/apache2/ssl
+oozie_ssl_key: oozie_loadbalancer.key
+oozie_ssl_csr: oozie_oadbalancer.csr
+oozie_ssl_cert: oozie_loadbalancer.cert
+

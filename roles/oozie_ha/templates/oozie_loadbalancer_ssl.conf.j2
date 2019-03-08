@@ -1,0 +1,34 @@
+#This is created by Ambari DeployNG code
+Listen 6182
+<VirtualHost *:11443>
+SSLEngine On
+        SSLProxyEngine On
+        SSLCertificateFile {{ oozie_ca_cert_dir }}/{{ oozie_ssl_cert }}
+        SSLCertificateKeyFile {{ oozie_ca_cert_dir }}/{{ oozie_ssl_key }}
+        SSLCACertificatePath {{ certs_dir }}
+        SSLCACertificateFile {{ certs_dir }}/{{ certs_ca_cert }}
+        SSLVerifyClient optional
+        SSLOptions +ExportCertData
+        SSLProxyVerify none
+        SSLProxyCheckPeerCN off
+        SSLProxyCheckPeerExpire off
+        SSLProxyCheckPeerName off
+        ProxyRequests off
+        ProxyPreserveHost on
+        Header add Set-Cookie "ROUTEID=.%{BALANCER_WORKER_ROUTE}e; path=/" env=BALANCER_ROUTE_CHANGED
+    <Proxy balancer://ooziesslcluster>
+          BalancerMember {{ oozie_protocol }}://{{ oozie_host_0 }}:{{ oozie_port }} loadfactor=1 route=1 timeout=5 retry=60
+          BalancerMember {{ oozie_protocol }}://{{ oozie_host_1 }}:{{ oozie_port }} loadfactor=1 route=1 timeout=5 retry=60
+               Order Deny,Allow
+                Deny from none
+                Allow from all
+                ProxySet lbmethod=byrequests scolonpathdelim=On stickysession=ROUTEID maxattempts=1 failonstatus=500,501,502,503 nofailover=Off
+        </Proxy>
+        <Location /balancer-manager>
+                SetHandler balancer-manager
+                Order deny,allow
+                Allow from all
+        </Location>
+       ProxyPass /balancer-manager !
+       ProxyPass / balancer://ooziebalancer/
+</VirtualHost>

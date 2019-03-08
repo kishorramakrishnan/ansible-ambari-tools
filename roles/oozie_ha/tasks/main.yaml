@@ -15,6 +15,135 @@
     oozie_host_{{ item.0 }} : "{{ item.1 }}"
   with_indexed_items: "{{ all_hosts }}"
 
+- name: Check that the WE directory for oozie exists
+  stat:
+    path: "/etc/wire_encryption/oozie/"
+  register: is_oozie_we
+  become: yes
+  become_user: root
+
+- name: Install apache module packages
+  package:
+    name: "{{ item }}"
+    state: present
+  become: yes
+  become_user: root
+  with_items:
+    - openssl-devel
+    - gcc-c++
+    - glibc-headers
+    - glibc-devel
+    - glibc
+    - kernel-headers
+    - openldap-devel
+    - mod_ssl
+  when: is_oozie_we.stat.exists == true
+
+- name: set properties accordingly if oozie WE is ON
+  set_fact:
+    oozie_protocol: https
+    oozie_port: 11443
+    oozie_loadbalancer_template: oozie_loadbalancer_ssl.conf.j2
+  when: is_oozie_we.stat.exists == true
+
+- name: create directory for oozie certificates
+  become: true
+  file:
+    path: "{{ oozie_ca_cert_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  when: is_oozie_we.stat.exists == true
+
+- name: Creates sites-available directory
+  file:
+    path: "/etc/{{ webserver_service }}/sites-available"
+    state: directory
+    mode: 0777
+  become: yes
+  become_user: root
+
+- name: Replace the port conflicts in the httpd ssl conf
+  replace:
+    dest: /etc/httpd/conf.d/ssl.conf
+    regexp: '443'
+    replace: '8043'
+  become: yes
+  become_user: root
+  when: is_oozie_we.stat.exists == true
+
+- name: create private key for SSL cert
+  command: >
+    openssl genrsa
+      -out "{{ oozie_ssl_key }}" 2048
+  args:
+    chdir: "{{ oozie_ca_cert_dir }}"
+    creates: "{{ oozie_ssl_key }}"
+  run_once: true
+  when: is_oozie_we.stat.exists == true
+  become: yes
+  become_user: root
+
+- name: create the csr and key for loadbalancer cert
+  command: >
+    openssl req
+      -nodes
+      -newkey rsa:2048
+      -keyout "{{ oozie_ssl_key }}"
+      -out "{{ oozie_ssl_csr }}"
+      -subj "{{ certs_ca_subject }}"
+  args:
+    chdir: "{{ oozie_ca_cert_dir }}"
+    creates: "{{ oozie_ssl_csr }}"
+  run_once: true
+  when: is_oozie_we.stat.exists == true
+  become: yes
+  become_user: root
+
+- name: create openssl config to include SAN (SubjectAlternativeNames)
+  template:
+    src: san.cnf.j2
+    dest: "{{ oozie_ca_cert_dir }}/san_{{ ansible_fqdn }}.cnf"
+  become: yes
+  become_user: root
+  when: is_oozie_we.stat.exists == true
+
+- name: sign certificate requests (local)
+  delegate_to: localhost
+  command: >
+    openssl x509
+      -req
+      -in "{{ oozie_ca_cert_dir }}/{{ oozie_ssl_csr }}"
+      -out "{{ oozie_ca_cert_dir }}/{{ oozie_ssl_cert }}"
+      -days "{{ certs_ca_sign_days }}"
+      -CA "{{ certs_ca_cert }}"
+      -CAkey "{{ certs_ca_key }}"
+      -CAcreateserial
+      -passin "pass:{{ certs_ca_password }}"
+      -extensions v3_req
+      -extfile "{{ oozie_ca_cert_dir }}/san_{{ ansible_fqdn }}.cnf"
+  args:
+    chdir: "{{ certs_local_dir }}"
+    creates: "{{ oozie_ca_cert_dir }}/{{ oozie_ssl_cert }}"
+  when: is_oozie_we.stat.exists == true
+  become: yes
+  become_user: root
+
+- name: Removing the passphrase from the private key
+  command: >
+    openssl rsa
+      -in "{{ oozie_ssl_key }}"
+      -out "{{ oozie_ssl_key }}"
+      -passin "pass:{{ certs_ca_password }}"
+  args:
+    chdir: "{{ oozie_ca_cert_dir }}"
+  run_once: true
+  when: is_oozie_we.stat.exists == true
+  become: yes
+  become_user: root
+
+
 - name: Install apache server packages
   package:
     name: "{{ webserver_service }}"
