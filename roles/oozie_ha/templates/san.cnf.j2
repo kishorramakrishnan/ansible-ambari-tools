@@ -1,0 +1,37 @@
+[req]
+distinguished_name = req_distinguished_name
+req_extensions     = v3_req
+x509_extensions    = v3_req
+copy_extensions = copy
+default_md = sha256
+
+
+[req_distinguished_name]
+commonName       = {{ ansible_fqdn }}
+
+{% if OU is defined %}
+organizationalUnitName = {{ OU }}
+{% endif %}
+
+{% if O is defined %}
+organizationName       = {{ O }}
+{% endif %}
+
+{% if L is defined %}
+localityName           = {{ L }}
+{% endif %}
+
+{% if ST is defined %}
+stateOrProvinceName    = {{ ST }}
+{% endif %}
+
+{% if C is defined %}
+countryName      = {{ C }}
+{% endif %}
+
+[v3_req]
+# The extentions to add to a self-signed cert
+subjectAltName       = @alt_names
+
+[alt_names]
+DNS.1 = {{ ansible_fqdn }}
