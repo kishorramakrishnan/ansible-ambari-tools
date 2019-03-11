@@ -9,4 +9,9 @@ knox_protocol: https
 knox_port: 8443
 domain: knoxexample.com
 webserver_service: httpd
-knox_ca_cert_dir: /usr/local/apache2/ssl/
+
+knox_ca_cert_dir: /usr/local/apache2/ssl
+certs_dir: /etc/wire_encryption/knox
+knox_ssl_key: loadbalancer.key
+knox_ssl_csr: loadbalancer.csr
+knox_ssl_cert: loadbalancer.cert

@@ -12,6 +12,13 @@
     knox_host_{{ item.0 }} : "{{ item.1 }}"
   with_indexed_items: "{{ all_hosts }}"
 
+- name: Check that the WE directory for knox exists
+  stat:
+    path: "/etc/wire_encryption/knox/"
+  register: is_knox_we
+  become: yes
+  become_user: root
+
 - name: Install apache server packages
   package:
     name: "{{ webserver_service }}"
@@ -35,7 +42,7 @@
     - openldap-devel
     - mod_ssl
 
-- name: create directory for Knox certificates
+- name: create directory for knox certificates
   become: true
   file:
     path: "{{ knox_ca_cert_dir }}"
@@ -52,7 +59,8 @@
   become: yes
   become_user: root
 
-- name: create root CA certificate (local)
+- name: create root CA certificate (local) if not a WE run
+  delegate_to: localhost
   command: >
     openssl req
       -new
@@ -66,21 +74,75 @@
       -passin "pass:{{ certs_ca_password }}"
       -passout "pass:{{ certs_ca_password }}"
   args:
-    chdir: "{{ knox_ca_cert_dir }}"
+    chdir: "{{ certs_local_dir }}"
     creates: "{{ certs_ca_cert }}"
   run_once: true
-  when: certs_use_local_ca
+  when: not is_knox_we.stat.exists == true
+
+- name: create private key for SSL cert
+  command: >
+    openssl genrsa
+      -out "{{ knox_ssl_key }}" 2048
+  args:
+    chdir: "{{ knox_ca_cert_dir }}"
+    creates: "{{ knox_ssl_key }}"
+  run_once: true
+  become: yes
+  become_user: root
+
+- name: create the csr and key for loadbalancer cert
+  command: >
+    openssl req
+      -nodes
+      -newkey rsa:2048
+      -keyout "{{ knox_ssl_key }}"
+      -out "{{ knox_ssl_csr }}"
+      -subj "{{ certs_ca_subject }}"
+  args:
+    chdir: "{{ knox_ca_cert_dir }}"
+    creates: "{{ knox_ssl_csr }}"
+  run_once: true
+  become: yes
+  become_user: root
+
+- name: create openssl config to include SAN (SubjectAlternativeNames)
+  template:
+    src: san.cnf.j2
+    dest: "{{ knox_ca_cert_dir }}/san_{{ ansible_fqdn }}.cnf"
+  become: yes
+  become_user: root
+
+- name: sign certificate requests (local)
+  delegate_to: localhost
+  command: >
+    openssl x509
+      -req
+      -in "{{ knox_ca_cert_dir }}/{{ knox_ssl_csr }}"
+      -out "{{ knox_ca_cert_dir }}/{{ knox_ssl_cert }}"
+      -days "{{ certs_ca_sign_days }}"
+      -CA "{{ certs_ca_cert }}"
+      -CAkey "{{ certs_ca_key }}"
+      -CAcreateserial
+      -passin "pass:{{ certs_ca_password }}"
+      -extensions v3_req
+      -extfile "{{ knox_ca_cert_dir }}/san_{{ ansible_fqdn }}.cnf"
+  args:
+    chdir: "{{ certs_local_dir }}"
+    creates: "{{ knox_ca_cert_dir }}/{{ knox_ssl_cert }}"
+  become: yes
+  become_user: root
 
 - name: Removing the passphrase from the private key
   command: >
     openssl rsa
-      -in "{{ certs_ca_key }}"
-      -out "{{ certs_ca_key }}"
+      -in "{{ knox_ssl_key }}"
+      -out "{{ knox_ssl_key }}"
       -passin "pass:{{ certs_ca_password }}"
   args:
     chdir: "{{ knox_ca_cert_dir }}"
   run_once: true
-  when: certs_use_local_ca
+  become: yes
+  become_user: root
 
 - name: Creates sites-available directory
   file:
