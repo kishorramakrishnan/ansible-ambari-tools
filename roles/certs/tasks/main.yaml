@@ -1,10 +1,14 @@
 - name: Get ambari java home
   run_once: true
+  become: true
+  become_user: root
   local_action:
     module: set_fact
     java_home: '{{ "/etc/ambari-server/conf/ambari.properties" | get_ambari_java_home }}'
 
 - name: set CA cert path and all hosts
+  become: true
+  become_user: root
   local_action:
     module: set_fact
     java_ca_cert_path: "{{ java_home }}/jre/lib/security/cacerts"
@@ -15,15 +19,19 @@
     path: "{{ certs_local_dir }}"
     state: directory
   run_once: true
+  become: true
+  become_user: root
 
 - name: create directory for certificates
-  become: true
   file:
     path: "{{ certs_dir }}"
     state: directory
     owner: root
     group: root
     mode: 0755
+  become: true
+  become_user: root
+
 
 - name: create root CA certificate (local)
   delegate_to: localhost
@@ -44,9 +52,11 @@
     creates: "{{ certs_ca_cert }}"
   run_once: true
   when: certs_use_local_ca
+  become: true
+  become_user: root
+
 
 - name: create keystore file
-  become: true
   command: >
     keytool -genkeypair
       -alias "{{ certs_local_alias | default(ansible_fqdn) }}"
@@ -61,17 +71,21 @@
   args:
     chdir: "{{ certs_dir }}"
     creates: "{{ certs_jks_file }}"
+  become: true
+  become_user: root
+
 
 - name: change ownership of keystore file
-  become: true
   file:
     path: "{{ certs_dir }}/{{ certs_jks_file }}"
     owner: root
     group: root
     mode: 0644
+  become: true
+  become_user: root
+
 
 - name: create certificate request
-  become: true
   command: >
     keytool -certreq
       -alias "{{ certs_local_alias | default(ansible_fqdn) }}"
@@ -83,12 +97,16 @@
   args:
     chdir: "{{ certs_dir }}"
     creates: "{{ certs_jks_req }}"
+  become: true
+  become_user: root
 
 - name: create openssl config to include SAN (SubjectAlternativeNames)
   become: true
   template:
     src: san.cnf.j2
     dest: "{{ certs_dir }}/san_{{ ansible_fqdn }}.cnf"
+  become_user: root
+
 
 - name: pull certificate requests
   become: true
@@ -98,15 +116,19 @@
     flat: yes
   args:
     creates: "{{ certs_local_dir }}/{{ component_prefix }}/{{ inventory_hostname }}_{{ certs_jks_req }}"
+  become_user: root
+
 
 - name: pull openssl conf files needed for signing with SAN extension
-  become: true
   fetch:
     src: "{{ certs_dir}}/san_{{ inventory_hostname }}.cnf"
     dest: "{{ certs_local_dir }}/{{ component_prefix }}/san_{{ inventory_hostname }}.cnf"
     flat: yes
   args:
     creates: "{{ certs_local_dir }}/{{ component_prefix }}/san_{{ inventory_hostname }}.cnf"
+  become: true
+  become_user: root
+
 
 - name: sign certificate requests (local)
   delegate_to: localhost
@@ -126,6 +148,8 @@
     chdir: "{{ certs_local_dir }}"
     creates: "{{ component_prefix }}/{{ inventory_hostname }}_{{ certs_jks_cert }}"
   when: certs_use_local_ca
+  become: true
+  become_user: root
 
 - name: sign certificate requests (external)
   pause:
@@ -133,7 +157,6 @@
   when: not certs_use_local_ca
 
 - name: push certificates
-  become: true
   copy:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
@@ -143,9 +166,10 @@
       dest: "{{ certs_dir}}/{{ certs_jks_cert }}"
     - src: "{{ certs_local_dir }}/{{ certs_ca_cert }}"
       dest: "{{ certs_dir }}/{{ certs_ca_cert }}"
+  become: true
+  become_user: root
 
 - name: import certificates
-  become: true
   command: >
     keytool -import
       -keystore "{{ certs_dir }}/{{ certs_jks_file }}"
@@ -161,6 +185,8 @@
       file: "{{ certs_jks_cert }}"
   loop_control:
     label: "{{ item.alias }}"
+  become: true
+  become_user: root
 
 - name: import the signing certificate to cacertstore
   become: true
