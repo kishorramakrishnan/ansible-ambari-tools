@@ -65,6 +65,12 @@
     - hdp
     - pre_deploy
 
+- import_playbook: component_knox_hdp_we.yaml
+  tags:
+    - knox
+    - hdp
+    - pre_deploy
+
 - import_playbook: component_rangerkms_hdp_we.yaml
   tags:
     - rangerkms

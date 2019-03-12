@@ -1,0 +1,21 @@
+---
+- name: Invoke wire encryption for knox
+  include_role:
+    name: certs
+  vars:
+    component_prefix: knox
+  become: yes
+  become_user: root
+
+- name: Invoke wire encryption for ranger plugins
+  include_role:
+    name: certs
+  vars:
+    component_prefix: ranger-knox-plugin
+    certs_local_alias: "rangerKnoxAgent"
+    certs_jks_file: ranger-plugin.jks
+    certs_jks_req: ranger-plugin.req
+    certs_jks_cert: ranger-plugin.crt
+  become: yes
+  become_user: root
+  when: install_ranger == true

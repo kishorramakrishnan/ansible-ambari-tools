@@ -1,0 +1,4 @@
+---
+- hosts: KNOX_GATEWAY
+  roles:
+    - { name: knox, when: install_knox == true }
