@@ -51,6 +51,15 @@
     group: root
     mode: 0755
 
+- name: create directory for certificates (local)
+  delegate_to: localhost
+  file:
+    path: "{{ certs_local_dir }}"
+    state: directory
+  run_once: true
+  when: not is_knox_we.stat.exists == true
+
+
 - name: Replace the port conflicts in the httpd ssl conf
   replace:
     dest: /etc/httpd/conf.d/ssl.conf
