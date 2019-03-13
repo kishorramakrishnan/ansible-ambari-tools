@@ -14,7 +14,7 @@
 
 - name: Check that the WE directory for knox exists
   stat:
-    path: "/etc/wire_encryption/knox/"
+    path: "{{ certs_dir }}"
   register: is_knox_we
   become: yes
   become_user: root
@@ -51,6 +51,16 @@
     group: root
     mode: 0755
 
+- name: create directory for knox root CA certificates
+  become: true
+  file:
+    path: "{{ certs_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  when: not is_knox_we.stat.exists == true
+
 - name: Replace the port conflicts in the httpd ssl conf
   replace:
     dest: /etc/httpd/conf.d/ssl.conf
@@ -74,7 +84,7 @@
       -passin "pass:{{ certs_ca_password }}"
       -passout "pass:{{ certs_ca_password }}"
   args:
-    chdir: "{{ knox_ca_cert_dir }}"
+    chdir: "{{ certs_dir }}"
     creates: "{{ certs_ca_cert }}"
   run_once: true
   when: not is_knox_we.stat.exists == true
@@ -112,6 +122,11 @@
   become: yes
   become_user: root
 
+- name: Handle root CA dir in case of WE deploys
+  set_fact:
+    certs_dir : {{ certs_local_dir }}
+  when: is_knox_we.stat.exists == true
+
 - name: sign certificate requests (local)
   delegate_to: localhost
   command: >
@@ -127,7 +142,7 @@
       -extensions v3_req
       -extfile "{{ knox_ca_cert_dir }}/san_{{ ansible_fqdn }}.cnf"
   args:
-    chdir: "{{ knox_ca_cert_dir }}"
+    chdir: "{{ certs_dir }}"
     creates: "{{ knox_ca_cert_dir }}/{{ knox_ssl_cert }}"
   become: yes
   become_user: root
