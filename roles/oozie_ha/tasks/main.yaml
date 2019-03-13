@@ -15,6 +15,10 @@
     oozie_host_{{ item.0 }} : "{{ item.1 }}"
   with_indexed_items: "{{ all_hosts }}"
 
+- name: set default loadbalancer template
+  set_fact:
+    oozie_loadbalancer_template: oozie_loadbalancer.conf.j2
+
 - name: Check that the WE directory for oozie exists
   stat:
     path: "/etc/wire_encryption/oozie/"
@@ -168,7 +172,7 @@
   become_user: root
 
 - name: create virtual host file
-  template: src="oozie_loadbalancer.conf.j2" dest="/etc/{{ webserver_service }}/sites-available/{{ domain }}.conf"
+  template: src="{{ oozie_loadbalancer_template }}" dest="/etc/{{ webserver_service }}/sites-available/{{ domain }}.conf"
   become: yes
   become_user: root
 
