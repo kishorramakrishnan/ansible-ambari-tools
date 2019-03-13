@@ -51,15 +51,6 @@
     group: root
     mode: 0755
 
-- name: create directory for certificates (local)
-  delegate_to: localhost
-  file:
-    path: "{{ certs_local_dir }}"
-    state: directory
-  run_once: true
-  when: not is_knox_we.stat.exists == true
-
-
 - name: Replace the port conflicts in the httpd ssl conf
   replace:
     dest: /etc/httpd/conf.d/ssl.conf
@@ -83,7 +74,7 @@
       -passin "pass:{{ certs_ca_password }}"
       -passout "pass:{{ certs_ca_password }}"
   args:
-    chdir: "{{ certs_local_dir }}"
+    chdir: "{{ knox_ca_cert_dir }}"
     creates: "{{ certs_ca_cert }}"
   run_once: true
   when: not is_knox_we.stat.exists == true
@@ -136,7 +127,7 @@
       -extensions v3_req
       -extfile "{{ knox_ca_cert_dir }}/san_{{ ansible_fqdn }}.cnf"
   args:
-    chdir: "{{ certs_local_dir }}"
+    chdir: "{{ knox_ca_cert_dir }}"
     creates: "{{ knox_ca_cert_dir }}/{{ knox_ssl_cert }}"
   become: yes
   become_user: root
