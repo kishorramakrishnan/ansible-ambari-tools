@@ -124,7 +124,7 @@
 
 - name: Handle root CA dir in case of WE deploys
   set_fact:
-    certs_dir : {{ certs_local_dir }}
+    certs_dir : "{{ certs_local_dir }}"
   when: is_knox_we.stat.exists == true
 
 - name: sign certificate requests (local)
