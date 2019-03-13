@@ -4,6 +4,7 @@
     name: certs
   vars:
     component_prefix: rangerkms
+    certs_local_alias: rangerkms
   become: yes
   become_user: root
 
